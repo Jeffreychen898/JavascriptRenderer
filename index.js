@@ -7,5 +7,5 @@ app.listen(PORT, () => {
 	console.log(PORT);
 });
 
-app.get("/", express.static("test"));
-app.get("/renderer", express.static("renderer"));
+app.use("/", express.static("test"));
+app.use("/renderer", express.static("renderer"));
