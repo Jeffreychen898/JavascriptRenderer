@@ -10,7 +10,7 @@ precision mediump float;
 void main() {
 	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
-`
+`;
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
@@ -38,7 +38,13 @@ class $Renderer_Main {
 		gl.clearColor(0, 0, 0, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		const shader_program = new $Renderer_Shader(vert, frag);
+		const attribs = [
+			{
+				name: "vertPosition",
+				size: 2
+			}
+		];
+		const shader_program = new $Renderer_Shader(vert, frag, attribs);
 
 		const triangleVertices = [
 			0.0, 0.5,
@@ -46,21 +52,7 @@ class $Renderer_Main {
 			0.5, -0.5
 		];
 
-		const triangleVertexBufferObject = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBufferObject);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-
-		const positionAttribLocation = gl.getAttribLocation(shader_program.m_program, "vertPosition");
-		gl.vertexAttribPointer(
-			positionAttribLocation,
-			2,//vec2
-			gl.FLOAT,//type
-			gl.FALSE,//normalize
-			2 * Float32Array.BYTES_PER_ELEMENT, //size
-			0, //offset
-		);
-
-		gl.enableVertexAttribArray(positionAttribLocation);
+		shader_program.setAttribData("vertPosition", triangleVertices);
 
 		//in loop
 		shader_program.bind();

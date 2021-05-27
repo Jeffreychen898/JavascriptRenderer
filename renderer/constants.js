@@ -4,7 +4,8 @@ let $RendererVariable = {
 	},
 	WebGL: {
 		Binding: {
-			Shader: undefined
+			Shader: undefined,
+			VBO: undefined
 		}
 	}
 };
