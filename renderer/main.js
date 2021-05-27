@@ -14,7 +14,7 @@ void main() {
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
-		Shader: () => { return new $Renderer_Shader(vert, frag); }
+		Shader: () => { return new $Renderer_Shader(vert, frag, attributes); }
 	}
 }
 
@@ -47,16 +47,23 @@ class $Renderer_Main {
 		const shader_program = new $Renderer_Shader(vert, frag, attribs);
 
 		const triangleVertices = [
-			0.0, 0.5,
+			-0.5,  0.5,
+			 0.5,  0.5,
+			 0.5, -0.5,
 			-0.5, -0.5,
-			0.5, -0.5
+		];
+
+		const indices = [
+			0, 1, 2,
+			0, 2, 3
 		];
 
 		shader_program.setAttribData("vertPosition", triangleVertices);
+		shader_program.setIndices(indices);
 
 		//in loop
 		shader_program.bind();
-		gl.drawArrays(gl.TRIANGLES, 0, 3);
+		gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 	}
 }
 

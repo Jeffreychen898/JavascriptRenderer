@@ -6,6 +6,8 @@ class $Renderer_Shader {
 
 		this.$createProgram(vertexCode, fragmentCode);
 		this.$setupAttribute(attributes);
+		this.$setupIndexBuffer();
+		this.bind();
 	}
 
 	/* @param {String, array} */
@@ -13,42 +15,68 @@ class $Renderer_Shader {
 		const gl = $RendererVariable.Canvas.RenderingContext;
 
 		if(this.$m_attributeLocations.has(attribName)) {
+			this.bind();
 			const vbo = this.$m_attributeLocations.get(attribName);
-			if(vbo != $RendererVariable.WebGL.Binding.VBO) {
+			if(vbo != $RendererVariable.WebGL.Binding.BufferObject) {
 				gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-				$RendererVariable.WebGL.Binding.VBO = vbo;
+				$RendererVariable.WebGL.Binding.BufferObject = vbo;
 			}
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
 		}
 	}
-	
+
+	/* @param {array} */
+	setIndices(data) {
+		const gl = $RendererVariable.Canvas.RenderingContext;
+
+		this.bind();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.$m_ibo);
+		$RendererVariable.WebGL.Binding.BufferObject = this.$m_ibo;
+
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.DYNAMIC_DRAW);
+	}
+
 	bind() {
 		const gl = $RendererVariable.Canvas.RenderingContext;
 
-		if($RendererVariable.WebGL.Binding.Shader != this.$m_program)
-			this.$useProgram();
+		if($RendererVariable.WebGL.Binding.Shader != this.$m_program) {
+			gl.useProgram(this.$m_program);
+			gl.bindVertexArray(this.$m_vao);
+			$RendererVariable.WebGL.Binding.Shader = this.$m_program;
+		}
 	}
 
 	/* @private */
+	$setupIndexBuffer() {
+		const gl = $RendererVariable.Canvas.RenderingContext;
+
+		this.$m_ibo = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.$m_ibo);
+		$RendererVariable.WebGL.Binding.BufferObject = this.$m_ibo;
+	}
+
 	/* @param {Object} */
 	/* [{name: String, size: number}] */
 	$setupAttribute(attributes) {
 		const gl = $RendererVariable.Canvas.RenderingContext;
-		//create vao
-		//bind vao
+
+		this.$m_vao = gl.createVertexArray();
+		gl.bindVertexArray(this.$m_vao);
 
 		this.$m_attributeLocations = new Map();
 		for(let attribute of attributes) {
 			const vbo = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+			$RendererVariable.WebGL.Binding.BufferObject = vbo;
 
 			const attrib_location = gl.getAttribLocation(this.$m_program, attribute.name);
 			this.$m_attributeLocations.set(attribute.name, vbo);
 
-			gl.vertexAttribPointer(attrib_location, attribute.size, gl.FLOAT, gl.FALSE, attribute.size * Float32Array.BYTES_PER_ELEMENT, 0);
+			gl.vertexAttribPointer(attrib_location, attribute.size, gl.FLOAT, false, 0, 0);
 			gl.enableVertexAttribArray(attrib_location);
 		}
 	}
+
 	/* @param {String, String} */
 	$createProgram(vertexCode, fragmentCode) {
 		const gl = $RendererVariable.Canvas.RenderingContext;
@@ -64,6 +92,7 @@ class $Renderer_Shader {
 		if(!gl.getProgramParameter(this.$m_program, gl.LINK_STATUS))
 			console.error("ERROR Linking Shader Program " + gl.getProgramInfoLog(this.$m_program));
 	}
+
 	/* @param {GL_Shader_Program, String} */
 	$compileShader(type, shaderCode) {
 		const gl = $RendererVariable.Canvas.RenderingContext;
@@ -76,12 +105,5 @@ class $Renderer_Shader {
 			console.error("ERROR Compiling Shader " + gl.getShaderInfoLog(shader));
 
 		return shader;
-	}
-
-	$useProgram() {
-		const gl = $RendererVariable.Canvas.RenderingContext;
-
-		gl.useProgram(this.$m_program);
-		$RendererVariable.WebGL.Binding.Shader = this.$m_program;
 	}
 }
