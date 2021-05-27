@@ -2,7 +2,7 @@ window.onload = () => {
 	const config = {
 		canvas: "canvas"
 	};
-	const renderer = new JSRenderer(config);
+	const renderer = $R.Create.Renderer(config);
 }
 
 /*

@@ -11,8 +11,14 @@ void main() {
 	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 `
+const $R = {
+	Create: {
+		Renderer: (config) => { return new $Renderer_Main(config); },
+		Shader: () => { return new $Renderer_Shader(); }
+	}
+}
 
-class JSRenderer {
+class $Renderer_Main {
 	/* @param {Object}
 	 * canvas: canvas id 
 	*/
@@ -23,6 +29,7 @@ class JSRenderer {
 		this.$setupRendering();
 	}
 
+	/* @private */
 	$setupRendering() {
 		const gl = this.$m_gl;
 
