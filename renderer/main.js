@@ -26,6 +26,8 @@ class $Renderer_Main {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
 
+		$RendererVariable.Canvas.RenderingContext = this.$m_gl;
+
 		this.$setupRendering();
 	}
 
@@ -36,39 +38,7 @@ class $Renderer_Main {
 		gl.clearColor(0, 0, 0, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-		const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-		gl.shaderSource(vertexShader, vert);
-		gl.shaderSource(fragmentShader, frag);
-
-		gl.compileShader(vertexShader);
-		if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-			console.error("ERROR Vert", gl.getShaderInfoLog(vertexShader));
-			return;
-		}
-		gl.compileShader(fragmentShader);
-		if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-			console.error("ERROR Frag", gl.getShaderInfoLog(fragmentShader));
-			return;
-		}
-
-		const program = gl.createProgram();
-		gl.attachShader(program, vertexShader);
-		gl.attachShader(program, fragmentShader);
-		gl.linkProgram(program);
-		if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			console.error("ERROR linking", gl.getProgramInfoLog(program));
-			return;
-		}
-
-		//debug>>
-		gl.validateProgram(program);
-		if(!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-			console.error("ERROR", gl.getProgramInfoLog(program));
-			return;
-		}
-		//<<
+		const shader_program = new $Renderer_Shader(vert, frag);
 
 		const triangleVertices = [
 			0.0, 0.5,
@@ -80,7 +50,7 @@ class $Renderer_Main {
 		gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBufferObject);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
 
-		const positionAttribLocation = gl.getAttribLocation(program, "vertPosition");
+		const positionAttribLocation = gl.getAttribLocation(shader_program.m_program, "vertPosition");
 		gl.vertexAttribPointer(
 			positionAttribLocation,
 			2,//vec2
@@ -93,7 +63,7 @@ class $Renderer_Main {
 		gl.enableVertexAttribArray(positionAttribLocation);
 
 		//in loop
-		gl.useProgram(program);
+		shader_program.bind();
 		gl.drawArrays(gl.TRIANGLES, 0, 3);
 	}
 }
