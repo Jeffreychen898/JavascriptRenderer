@@ -14,7 +14,7 @@ void main() {
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
-		Shader: () => { return new $Renderer_Shader(); }
+		Shader: () => { return new $Renderer_Shader(vert, frag); }
 	}
 }
 
