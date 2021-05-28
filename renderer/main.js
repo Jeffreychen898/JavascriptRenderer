@@ -1,20 +1,26 @@
 const vert = `
-attribute vec2 vertPosition;
+attribute vec2 a_position;
+attribute vec3 a_color;
+
+varying vec3 v_color;
 
 void main() {
-	gl_Position = vec4(vertPosition, 0.0, 1.0);
+	v_color = a_color;
+	gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
 const frag = `
 precision mediump float;
+
+varying vec3 v_color;
+
 void main() {
-	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	gl_FragColor = vec4(v_color, 1.0);
 }
 `;
 const $R = {
 	Create: {
-		Renderer: (config) => { return new $Renderer_Main(config); },
-		Shader: (vert, frag, attributes) => { return new $Renderer_Shader(vert, frag, attributes); }
+		Renderer: (config) => { return new $Renderer_Main(config); }
 	}
 }
 
@@ -25,6 +31,9 @@ class $Renderer_Main {
 	constructor(config) {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
+		
+		this.$m_attributes = [];
+		this.$m_indices = [];
 
 		this.$setupRendering();
 	}
@@ -36,6 +45,26 @@ class $Renderer_Main {
 	}
 
 	/* @private */
+	/* @param {Program} */
+	$render(program) {
+		const gl = this.$m_gl;
+
+		for(let each_attrib of this.$m_attributes)
+			program.setAttribData(each_attrib.name, each_attrib.content);
+
+		program.setIndices(this.$m_indices);
+
+		program.bind();
+		gl.drawElements(gl.TRIANGLES, this.$m_indices.length, gl.UNSIGNED_SHORT, 0);
+
+		this.$clearAttribs();
+	}
+
+	$clearAttribs() {
+		this.$m_attributes = [];
+		this.$m_indices = [];
+	}
+
 	$setupRendering() {
 		const gl = this.$m_gl;
 
@@ -44,8 +73,12 @@ class $Renderer_Main {
 
 		const attribs = [
 			{
-				name: "vertPosition",
+				name: "a_position",
 				size: 2
+			},
+			{
+				name: "a_color",
+				size: 3
 			}
 		];
 		const shader_program = new $Renderer_Shader(gl, vert, frag, attribs);
@@ -56,18 +89,23 @@ class $Renderer_Main {
 			 0.5, -0.5,
 			-0.5, -0.5,
 		];
+		const triangleColors = [
+			1.0, 1.0, 0.0,
+			0.0, 1.0, 0.0,
+			1.0, 0.0, 1.0,
+			0.0, 1.0, 1.0
+		];
+		this.$m_attributes = [
+			{name: "a_position", content: triangleVertices},
+			{name: "a_color", content: triangleColors}
+		];
 
-		const indices = [
+		this.$m_indices = [
 			0, 1, 2,
 			0, 2, 3
 		];
 
-		shader_program.setAttribData("vertPosition", triangleVertices);
-		shader_program.setIndices(indices);
-
-		//in loop
-		shader_program.bind();
-		gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+		this.$render(shader_program);
 	}
 }
 
