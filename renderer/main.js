@@ -14,7 +14,7 @@ void main() {
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
-		Shader: () => { return new $Renderer_Shader(vert, frag, attributes); }
+		Shader: (vert, frag, attributes) => { return new $Renderer_Shader(vert, frag, attributes); }
 	}
 }
 
@@ -26,9 +26,13 @@ class $Renderer_Main {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
 
-		$RendererVariable.Canvas.RenderingContext = this.$m_gl;
-
 		this.$setupRendering();
+	}
+
+	/* @param{String, String, [Object]} */
+	/* [{name: String, size: number}] */
+	createShader(vertexShader, fragmentShader, attributes) {
+		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes);
 	}
 
 	/* @private */
@@ -44,7 +48,7 @@ class $Renderer_Main {
 				size: 2
 			}
 		];
-		const shader_program = new $Renderer_Shader(vert, frag, attribs);
+		const shader_program = new $Renderer_Shader(gl, vert, frag, attribs);
 
 		const triangleVertices = [
 			-0.5,  0.5,

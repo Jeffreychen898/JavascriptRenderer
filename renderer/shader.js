@@ -1,8 +1,8 @@
 class $Renderer_Shader {
-	/* @param {String, String, Object} */
+	/* @param {gl, String, String, Object} */
 	/* [{name: String, size: number}] */
-	constructor(vertexCode, fragmentCode, attributes) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+	constructor(gl, vertexCode, fragmentCode, attributes) {
+		this.$m_gl = gl;
 
 		this.$createProgram(vertexCode, fragmentCode);
 		this.$setupAttribute(attributes);
@@ -12,7 +12,7 @@ class $Renderer_Shader {
 
 	/* @param {String, array} */
 	setAttribData(attribName, data) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		if(this.$m_attributeLocations.has(attribName)) {
 			this.bind();
@@ -27,7 +27,7 @@ class $Renderer_Shader {
 
 	/* @param {array} */
 	setIndices(data) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		this.bind();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.$m_ibo);
@@ -37,7 +37,7 @@ class $Renderer_Shader {
 	}
 
 	bind() {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		if($RendererVariable.WebGL.Binding.Shader != this.$m_program) {
 			gl.useProgram(this.$m_program);
@@ -48,7 +48,7 @@ class $Renderer_Shader {
 
 	/* @private */
 	$setupIndexBuffer() {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		this.$m_ibo = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.$m_ibo);
@@ -58,7 +58,7 @@ class $Renderer_Shader {
 	/* @param {Object} */
 	/* [{name: String, size: number}] */
 	$setupAttribute(attributes) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		this.$m_vao = gl.createVertexArray();
 		gl.bindVertexArray(this.$m_vao);
@@ -79,7 +79,7 @@ class $Renderer_Shader {
 
 	/* @param {String, String} */
 	$createProgram(vertexCode, fragmentCode) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		const vertex_shader = this.$compileShader(gl.VERTEX_SHADER, vertexCode);
 		const fragment_shader = this.$compileShader(gl.FRAGMENT_SHADER, fragmentCode);
@@ -95,7 +95,7 @@ class $Renderer_Shader {
 
 	/* @param {GL_Shader_Program, String} */
 	$compileShader(type, shaderCode) {
-		const gl = $RendererVariable.Canvas.RenderingContext;
+		const gl = this.$m_gl;
 
 		const shader = gl.createShader(type);
 		gl.shaderSource(shader, shaderCode);
