@@ -1,11 +1,12 @@
 class $Renderer_Shader {
 	/* @param {gl, String, String, Object} */
 	/* [{name: String, size: number}] */
-	constructor(gl, vertexCode, fragmentCode, attributes) {
+	constructor(gl, vertexCode, fragmentCode, attributes, uniforms) {
 		this.$m_gl = gl;
 
 		this.$createProgram(vertexCode, fragmentCode);
 		this.$setupAttribute(attributes);
+		if(uniforms) this.$setupUniform(uniforms);
 		this.$setupIndexBuffer();
 		this.bind();
 	}
@@ -36,12 +37,39 @@ class $Renderer_Shader {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.DYNAMIC_DRAW);
 	}
 
+	/* @param {array|number} */
+	setUniform(name, data) {
+		const gl = this.$m_gl;
+
+		if(this.$m_uniformLocations.has(name)) {
+			this.$m_uniformData.set(name, data);
+			
+			const location = this.$m_uniformLocations.get(name);
+			const type = location.type;
+
+			if(type == Renderer.Uniform.Float)
+				gl.uniform1f(location.location, data);
+			else if(type == Renderer.Uniform.Vector2)
+				gl.uniform2f(location.location, ...data);
+			else if(type == Renderer.Uniform.Vector3)
+				gl.uniform3f(location.location, ...data);
+			else if(type == Renderer.Uniform.Vector4)
+				gl.uniform4f(location.location, ...data);
+			else if(type == Renderer.Uniform.Matrix4)
+				gl.uniformMatrix4fv(location.location, true, data);
+		}
+	}
+
 	bind() {
 		const gl = this.$m_gl;
 
 		if($RendererVariable.WebGL.Binding.Shader != this.$m_program) {
 			gl.useProgram(this.$m_program);
 			gl.bindVertexArray(this.$m_vao);
+
+			for(let [key, value] of this.$m_uniformData)
+				this.setUniform(key, value);
+
 			$RendererVariable.WebGL.Binding.Shader = this.$m_program;
 		}
 	}
@@ -55,7 +83,7 @@ class $Renderer_Shader {
 		$RendererVariable.WebGL.Binding.BufferObject = this.$m_ibo;
 	}
 
-	/* @param {Object} */
+	/* @param {array} */
 	/* [{name: String, size: number}] */
 	$setupAttribute(attributes) {
 		const gl = this.$m_gl;
@@ -75,6 +103,20 @@ class $Renderer_Shader {
 			gl.vertexAttribPointer(attrib_location, attribute.size, gl.FLOAT, false, 0, 0);
 			gl.enableVertexAttribArray(attrib_location);
 		}
+	}
+
+	/* @param {array} */
+	/* [{name: String, type: Renderer.Uniform}] */
+	$setupUniform(uniforms) {
+		const gl = this.$m_gl;
+
+		this.$m_uniformLocations = new Map();
+		for(let uniform of uniforms) {
+			const location = gl.getUniformLocation(this.$m_program, uniform.name);
+			this.$m_uniformLocations.set(uniform.name, {location: location, type: uniform.type});
+		}
+
+		this.$m_uniformData = new Map();
 	}
 
 	/* @param {String, String} */

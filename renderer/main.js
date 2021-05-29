@@ -2,11 +2,13 @@ const vert = `
 attribute vec2 a_position;
 attribute vec3 a_color;
 
+uniform mat4 projection;
+
 varying vec3 v_color;
 
 void main() {
 	v_color = a_color;
-	gl_Position = vec4(a_position, 0.0, 1.0);
+	gl_Position = projection * vec4(a_position, 0.0, 1.0);
 }
 `;
 const frag = `
@@ -37,36 +39,40 @@ class $Renderer_Main {
 
 		this.$setupRendering();
 
-		//methods
+		//collections of methods
 		this.draw = {
-			rect: (x, y, w, h) => {
-				this.$drawRectangle(x, y, w, h)
+			rect: (x, y, width, height, properties) => {
+				this.$drawRectangle(x, y, width, height, properties)
 			}
 		}
-
 	}
 
 	/* @param{String, String, [Object]} */
 	/* [{name: String, size: number}] */
-	createShader(vertexShader, fragmentShader, attributes) {
-		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes);
+	createShader(vertexShader, fragmentShader, attributes, uniforms) {
+		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
 	}
 
 	/* @private */
 	/* @param {number, number, number, number} */
-	$drawRectangle(x, y, w, h) {
+	$drawRectangle(x, y, width, height, properties) {
+		let color = [1, 1, 1];
+		if(properties) {
+			if(properties.color) color = properties.color;
+		}
+
 		const triangleVertices = [
-			-0.5,  0.5,
-			 0.5,  0.5,
-			 0.5, -0.5,
-			-0.5, -0.5,
+			x, y,
+			x + width, y,
+			x + width, y + height,
+			x, y + height
 		];
 
 		const triangleColors = [
-			1.0, 1.0, 0.0,
-			0.0, 1.0, 0.0,
-			1.0, 0.0, 1.0,
-			0.0, 1.0, 1.0
+			color[0], color[1], color[2],
+			color[0], color[1], color[2],
+			color[0], color[1], color[2],
+			color[0], color[1], color[2],
 		];
 
 		this.$m_attributes = [
@@ -79,7 +85,7 @@ class $Renderer_Main {
 			0, 2, 3
 		];
 
-		this.$render(this.$m_shader_program);
+		this.$render(this.$m_shaderProgram);
 	}
 
 	/* @param {Program} */
@@ -118,31 +124,20 @@ class $Renderer_Main {
 				size: 3
 			}
 		];
-		this.$m_shader_program = new $Renderer_Shader(gl, vert, frag, attribs);
 
-		/* const triangleVertices = [
-			-0.5,  0.5,
-			 0.5,  0.5,
-			 0.5, -0.5,
-			-0.5, -0.5,
-		];
-		const triangleColors = [
-			1.0, 1.0, 0.0,
-			0.0, 1.0, 0.0,
-			1.0, 0.0, 1.0,
-			0.0, 1.0, 1.0
-		];
-		this.$m_attributes = [
-			{name: "a_position", content: triangleVertices},
-			{name: "a_color", content: triangleColors}
+		const uniforms = [
+			{name: "projection", type: Renderer.Uniform.Matrix4}
 		];
 
-		this.$m_indices = [
-			0, 1, 2,
-			0, 2, 3
+		const matrix = [
+			2/400, 0, 0, -1,
+			0, 2/-400, 0, 1,
+			0, 0, 1, 0,
+			0, 0, 0, 1
 		];
+		this.$m_shaderProgram = new $Renderer_Shader(gl, vert, frag, attribs, uniforms);
 
-		this.$render(this.$m_shader_program);*/
+		this.$m_shaderProgram.setUniform("projection", matrix);
 	}
 }
 
