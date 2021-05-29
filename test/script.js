@@ -3,6 +3,7 @@ window.onload = () => {
 		canvas: "canvas"
 	};
 	const renderer = $R.Create.Renderer(config);
+	renderer.draw.rect(-0.5, -0.5, 1.0, 1.0);
 }
 
 /*

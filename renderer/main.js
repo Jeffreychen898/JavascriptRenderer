@@ -36,6 +36,14 @@ class $Renderer_Main {
 		this.$m_indices = [];
 
 		this.$setupRendering();
+
+		//methods
+		this.draw = {
+			rect: (x, y, w, h) => {
+				this.$drawRectangle(x, y, w, h)
+			}
+		}
+
 	}
 
 	/* @param{String, String, [Object]} */
@@ -45,6 +53,35 @@ class $Renderer_Main {
 	}
 
 	/* @private */
+	/* @param {number, number, number, number} */
+	$drawRectangle(x, y, w, h) {
+		const triangleVertices = [
+			-0.5,  0.5,
+			 0.5,  0.5,
+			 0.5, -0.5,
+			-0.5, -0.5,
+		];
+
+		const triangleColors = [
+			1.0, 1.0, 0.0,
+			0.0, 1.0, 0.0,
+			1.0, 0.0, 1.0,
+			0.0, 1.0, 1.0
+		];
+
+		this.$m_attributes = [
+			{name: "a_position", content: triangleVertices},
+			{name: "a_color", content: triangleColors}
+		];
+
+		this.$m_indices = [
+			0, 1, 2,
+			0, 2, 3
+		];
+
+		this.$render(this.$m_shader_program);
+	}
+
 	/* @param {Program} */
 	$render(program) {
 		const gl = this.$m_gl;
@@ -81,9 +118,9 @@ class $Renderer_Main {
 				size: 3
 			}
 		];
-		const shader_program = new $Renderer_Shader(gl, vert, frag, attribs);
+		this.$m_shader_program = new $Renderer_Shader(gl, vert, frag, attribs);
 
-		const triangleVertices = [
+		/* const triangleVertices = [
 			-0.5,  0.5,
 			 0.5,  0.5,
 			 0.5, -0.5,
@@ -105,7 +142,7 @@ class $Renderer_Main {
 			0, 2, 3
 		];
 
-		this.$render(shader_program);
+		this.$render(this.$m_shader_program);*/
 	}
 }
 
