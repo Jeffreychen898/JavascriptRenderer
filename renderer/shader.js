@@ -67,9 +67,6 @@ class $Renderer_Shader {
 			gl.useProgram(this.$m_program);
 			gl.bindVertexArray(this.$m_vao);
 
-			for(let [key, value] of this.$m_uniformData)
-				this.setUniform(key, value);
-
 			$RendererVariable.WebGL.Binding.Shader = this.$m_program;
 		}
 	}

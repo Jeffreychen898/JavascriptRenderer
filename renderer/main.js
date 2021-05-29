@@ -43,6 +43,9 @@ class $Renderer_Main {
 		this.draw = {
 			rect: (x, y, width, height, properties) => {
 				this.$drawRectangle(x, y, width, height, properties)
+			},
+			shader: (shader, x, y, width, height, attributes, properties) => {
+				this.$drawShaders(shader, x, y, width, height, attributes, properties);
 			}
 		}
 	}
@@ -54,7 +57,43 @@ class $Renderer_Main {
 	}
 
 	/* @private */
-	/* @param {number, number, number, number} */
+	/* @param {Shader, number, number, number, number, array, Object} */
+	/* [{name: String, content: array, [optional]allVert: boolean} */
+	/* {
+		position: String
+	}*/
+	$drawShaders(shader, x, y, width, height, attributes, properties) {
+		if(!attributes)
+			attributes = [];
+
+		const positions = [
+			x, y,
+			x + width, y,
+			x + width, y + height,
+			x, y + height
+		];
+
+		for(const attrib of attributes) {
+			if(attrib.allVert)
+				attrib.content.push(...attrib.content, ...attrib.content, ...attrib.content);
+		}
+
+		this.$m_attributes = [
+			{name: properties.position || "a_position", content: positions},
+			...attributes
+		];
+
+		this.$m_indices = [
+			0, 1, 2,
+			0, 2, 3
+		];
+
+		this.$render(shader);
+	}
+	/* @param {number, number, number, number, Object} */
+	/* {
+		color: array
+	}*/
 	$drawRectangle(x, y, width, height, properties) {
 		let color = [1, 1, 1];
 		if(properties) {
