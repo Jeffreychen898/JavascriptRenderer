@@ -2,17 +2,28 @@ let $RendererVariable = {
 	WebGL: {
 		Binding: {
 			Shader: undefined,
-			BufferObject: undefined
+			BufferObject: undefined,
+			TextureSlot: 0,
+			Textures: []
+		}
+	},
+	Texture: {
+		Type: {
+			Image: 0,
+			ByteArray: 1
 		}
 	}
 };
 
 const Renderer = {
 	Uniform: {
-		Float: 0,
-		Vector2: 1,
-		Vector3: 2,
-		Vector4: 3,
-		Matrix4: 4
-	}
+		Integer: 0,
+		Float: 1,
+		Vector2: 2,
+		Vector3: 3,
+		Vector4: 4,
+		Matrix4: 5,
+		IntegerArray: 6
+	},
+	MaxTextureSlot: undefined
 }

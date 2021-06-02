@@ -57,6 +57,10 @@ class $Renderer_Shader {
 				gl.uniform4f(location.location, ...data);
 			else if(type == Renderer.Uniform.Matrix4)
 				gl.uniformMatrix4fv(location.location, true, data);
+			else if(type == Renderer.Uniform.Integer)
+				gl.uniform1i(location.location, data);
+			else if(type == Renderer.Uniform.IntegerArray)
+				gl.uniform1iv(location.location, data);
 		}
 	}
 
@@ -129,7 +133,7 @@ class $Renderer_Shader {
 		gl.linkProgram(this.$m_program);
 
 		if(!gl.getProgramParameter(this.$m_program, gl.LINK_STATUS))
-			console.error("ERROR Linking Shader Program " + gl.getProgramInfoLog(this.$m_program));
+			console.error(`[ERROR] Linking Shader Program ${gl.getProgramInfoLog(this.$m_program)}`);
 	}
 
 	/* @param {GL_Shader_Program, String} */
@@ -141,7 +145,7 @@ class $Renderer_Shader {
 
 		gl.compileShader(shader);
 		if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-			console.error("ERROR Compiling Shader " + gl.getShaderInfoLog(shader));
+			console.error(`[ERROR] Compiling Shader ${gl.getShaderInfoLog(shader)}`);
 
 		return shader;
 	}

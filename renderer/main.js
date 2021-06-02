@@ -1,12 +1,15 @@
 const vert = `
 attribute vec2 a_position;
 attribute vec3 a_color;
+attribute vec2 a_texCoord;
 
 uniform mat4 projection;
 
 varying vec3 v_color;
+varying vec2 v_texCoord;
 
 void main() {
+	v_texCoord = a_texCoord;
 	v_color = a_color;
 	gl_Position = projection * vec4(a_position, 0.0, 1.0);
 }
@@ -15,9 +18,12 @@ const frag = `
 precision mediump float;
 
 varying vec3 v_color;
+varying vec2 v_texCoord;
+
+uniform sampler2D u_texture;
 
 void main() {
-	gl_FragColor = vec4(v_color, 1.0);
+	gl_FragColor = texture2D(u_texture, v_texCoord) * vec4(v_color, 1.0);
 }
 `;
 const $R = {
@@ -33,16 +39,20 @@ class $Renderer_Main {
 	constructor(config) {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
-		
+
 		this.$m_attributes = [];
 		this.$m_indices = [];
 
 		this.$setupRendering();
+		this.$loadDefaultTextures();
 
 		//collections of methods
 		this.draw = {
 			rect: (x, y, width, height, properties) => {
 				this.$drawRectangle(x, y, width, height, properties)
+			},
+			image: (image, x, y, width, height, properties) => {
+				this.$drawImage(image, x, y, width, height, properties);
 			},
 			shader: (shader, x, y, width, height, attributes, properties) => {
 				this.$drawShaders(shader, x, y, width, height, attributes, properties);
@@ -90,11 +100,14 @@ class $Renderer_Main {
 
 		this.$render(shader);
 	}
-	/* @param {number, number, number, number, Object} */
+
+	/* @param{Texture, number, number, number, number, Object} */
 	/* {
-		color: array
+		color: [number, number, number]
 	}*/
-	$drawRectangle(x, y, width, height, properties) {
+	$drawImage(image, x, y, width, height, properties) {
+		image.bindTexture(0);
+
 		let color = [1, 1, 1];
 		if(properties) {
 			if(properties.color) color = properties.color;
@@ -114,9 +127,17 @@ class $Renderer_Main {
 			color[0], color[1], color[2],
 		];
 
+		const triangleTexCoords = [
+			0, 0,
+			1, 0,
+			1, 1,
+			0, 1
+		];
+
 		this.$m_attributes = [
 			{name: "a_position", content: triangleVertices},
-			{name: "a_color", content: triangleColors}
+			{name: "a_color", content: triangleColors},
+			{name: "a_texCoord", content: triangleTexCoords}
 		];
 
 		this.$m_indices = [
@@ -125,6 +146,15 @@ class $Renderer_Main {
 		];
 
 		this.$render(this.$m_shaderProgram);
+	}
+
+	/* @param {number, number, number, number, Object} */
+	/* {
+		color: [number, number, number]
+	}*/
+	$drawRectangle(x, y, width, height, properties) {
+		this.$m_whiteTexture.bindTexture(0);
+		this.$drawImage(this.$m_whiteTexture, x, y, width, height, properties);
 	}
 
 	/* @param {Program} */
@@ -147,8 +177,20 @@ class $Renderer_Main {
 		this.$m_indices = [];
 	}
 
+	$loadDefaultTextures() {
+		const white_texture_data = {
+			data: new Uint8Array([255, 255, 255, 255]),
+			width: 1,
+			height: 1
+		};
+		this.$m_whiteTexture = new Texture(this.$m_gl, white_texture_data);
+		this.$m_whiteTexture.createTexture();
+	}
+
 	$setupRendering() {
 		const gl = this.$m_gl;
+
+		Renderer.MaxTextureSlot = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
 
 		gl.clearColor(0, 0, 0, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -161,11 +203,16 @@ class $Renderer_Main {
 			{
 				name: "a_color",
 				size: 3
+			},
+			{
+				name: "a_texCoord",
+				size: 2
 			}
 		];
 
 		const uniforms = [
-			{name: "projection", type: Renderer.Uniform.Matrix4}
+			{name: "projection", type: Renderer.Uniform.Matrix4},
+			{name: "u_texture", type: Renderer.Uniform.Integer}
 		];
 
 		const matrix = [
@@ -177,6 +224,7 @@ class $Renderer_Main {
 		this.$m_shaderProgram = new $Renderer_Shader(gl, vert, frag, attribs, uniforms);
 
 		this.$m_shaderProgram.setUniform("projection", matrix);
+		this.$m_shaderProgram.setUniform("u_texture", 0);
 	}
 }
 

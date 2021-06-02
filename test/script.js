@@ -1,38 +1,17 @@
-const vert2 = `
-attribute vec2 pos;
-attribute vec3 a_col;
-
-uniform mat4 proj;
-
-varying vec3 v_col;
-
-void main() {
-	v_col = a_col;
-	gl_Position = proj * vec4(pos, 0.0, 1.0);
-}
-`;
-const frag2 = `
-precision mediump float;
-
-varying vec3 v_col;
-
-void main() {
-	gl_FragColor = vec4(v_col, 1.0);
-}
-`;
+let texture;
 window.onload = () => {
 	const config = {
 		canvas: "canvas"
 	};
 	const renderer = $R.Create.Renderer(config);
-	const texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
+	texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
 	texture.load();
 
 	animationLoop(renderer);
 }
 
 function animationLoop(renderer) {
-	renderer.draw.rect(0, 0, 400, 400, {color: [0, 0, 0]});
+	renderer.draw.image(texture, 0, 0, 400, 400, {});
 	renderer.draw.rect(100, 100, 100, 100, {color: [1, 1, 0]});
 
 	requestAnimationFrame(() => {
