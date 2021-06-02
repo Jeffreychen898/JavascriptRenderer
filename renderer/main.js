@@ -55,7 +55,7 @@ class $Renderer_Main {
 	createShader(vertexShader, fragmentShader, attributes, uniforms) {
 		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
 	}
-
+	
 	/* @private */
 	/* @param {Shader, number, number, number, number, array, Object} */
 	/* [{name: String, content: array, [optional]allVert: boolean} */
@@ -131,7 +131,7 @@ class $Renderer_Main {
 	$render(program) {
 		const gl = this.$m_gl;
 
-		for(let each_attrib of this.$m_attributes)
+		for(const each_attrib of this.$m_attributes)
 			program.setAttribData(each_attrib.name, each_attrib.content);
 
 		program.setIndices(this.$m_indices);

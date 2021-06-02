@@ -89,7 +89,7 @@ class $Renderer_Shader {
 		gl.bindVertexArray(this.$m_vao);
 
 		this.$m_attributeLocations = new Map();
-		for(let attribute of attributes) {
+		for(const attribute of attributes) {
 			const vbo = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 			$RendererVariable.WebGL.Binding.BufferObject = vbo;
@@ -108,7 +108,7 @@ class $Renderer_Shader {
 		const gl = this.$m_gl;
 
 		this.$m_uniformLocations = new Map();
-		for(let uniform of uniforms) {
+		for(const uniform of uniforms) {
 			const location = gl.getUniformLocation(this.$m_program, uniform.name);
 			this.$m_uniformLocations.set(uniform.name, {location: location, type: uniform.type});
 		}

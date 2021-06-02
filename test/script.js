@@ -24,25 +24,20 @@ window.onload = () => {
 	const config = {
 		canvas: "canvas"
 	};
-	const mat = [
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
-	];
 	const renderer = $R.Create.Renderer(config);
-	const attrib = [
-		{name: "pos", size: 2},
-		{name: "a_col", size: 3}
-	];
-	const shader = renderer.createShader(vert2, frag2, attrib, [{name: "proj", type: Renderer.Uniform.Matrix4}]);
-	shader.setUniform("proj", mat);
+	const texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
+	texture.load();
+
+	animationLoop(renderer);
+}
+
+function animationLoop(renderer) {
+	renderer.draw.rect(0, 0, 400, 400, {color: [0, 0, 0]});
 	renderer.draw.rect(100, 100, 100, 100, {color: [1, 1, 0]});
-	const params = [
-		{name: "a_col", content: [1, 1, 1], allVert: true}
-	];
-	renderer.draw.shader(shader, 0, -1, 1, 1, params, {position: "pos"});
-	renderer.draw.rect(0, 0, 100, 100, {color: [1, 0, 0]});
+
+	requestAnimationFrame(() => {
+		animationLoop(renderer)
+	});
 }
 
 /*
