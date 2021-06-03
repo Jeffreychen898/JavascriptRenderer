@@ -1,31 +1,3 @@
-const vert = `
-attribute vec2 a_position;
-attribute vec3 a_color;
-attribute vec2 a_texCoord;
-
-uniform mat4 projection;
-
-varying vec3 v_color;
-varying vec2 v_texCoord;
-
-void main() {
-	v_texCoord = a_texCoord;
-	v_color = a_color;
-	gl_Position = projection * vec4(a_position, 0.0, 1.0);
-}
-`;
-const frag = `
-precision mediump float;
-
-varying vec3 v_color;
-varying vec2 v_texCoord;
-
-uniform sampler2D u_texture;
-
-void main() {
-	gl_FragColor = texture2D(u_texture, v_texCoord) * vec4(v_color, 1.0);
-}
-`;
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); }
@@ -221,7 +193,7 @@ class $Renderer_Main {
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		];
-		this.$m_shaderProgram = new $Renderer_Shader(gl, vert, frag, attribs, uniforms);
+		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.default.vert, $ShaderCode.default.frag, attribs, uniforms);
 
 		this.$m_shaderProgram.setUniform("projection", matrix);
 		this.$m_shaderProgram.setUniform("u_texture", 0);
