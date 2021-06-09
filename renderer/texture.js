@@ -1,10 +1,10 @@
 class Texture {
 	/* @param {gl, String | Object} */
-	/*{
+	/*
 		data: Uint8Array,
 		width: number,
 		height: number
-	}*/
+	*/
 	constructor(gl, source) {
 		this.$m_gl = gl;
 
@@ -16,6 +16,7 @@ class Texture {
 		this.$m_source = source;
 	}
 
+	/* @param {function()} */
 	load(callback) {
 		const image = new Image();
 		image.onload = () => {
@@ -28,6 +29,7 @@ class Texture {
 		image.src = this.$m_source;
 		image.setAttribute("crossOrigin", "");
 	}
+	/* @param {function()} */
 	createTexture(callback) {
 		this.$createWebGLImage(this.$m_source.data, {width: this.$m_source.width, height: this.$m_source.height});
 		if(typeof(callback) == "function") callback();
@@ -61,10 +63,10 @@ class Texture {
 
 	/* @private */
 	/* @param {Canvas | Uint8Array, Object} */
-	/* {
+	/*
 		width: number,
 		height: number
-	}*/
+	*/
 	$createWebGLImage(data, properties) {
 		const gl = this.$m_gl;
 

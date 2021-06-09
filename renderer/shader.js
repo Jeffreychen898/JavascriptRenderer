@@ -1,6 +1,7 @@
 class $Renderer_Shader {
-	/* @param {gl, String, String, Object} */
+	/* @param {gl, String, String, Array, Array} */
 	/* [{name: String, size: number}] */
+	/* [{name: String, type: Renderer.Uniform}] */
 	constructor(gl, vertexCode, fragmentCode, attributes, uniforms) {
 		this.$m_gl = gl;
 
@@ -11,7 +12,7 @@ class $Renderer_Shader {
 		this.bind();
 	}
 
-	/* @param {String, array} */
+	/* @param {String, Array} */
 	setAttribData(attribName, data) {
 		const gl = this.$m_gl;
 
@@ -26,7 +27,7 @@ class $Renderer_Shader {
 		}
 	}
 
-	/* @param {array} */
+	/* @param {Array} */
 	setIndices(data) {
 		const gl = this.$m_gl;
 
@@ -37,7 +38,7 @@ class $Renderer_Shader {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.DYNAMIC_DRAW);
 	}
 
-	/* @param {array|number} */
+	/* @param {String, Array|number} */
 	setUniform(name, data) {
 		const gl = this.$m_gl;
 
@@ -106,7 +107,7 @@ class $Renderer_Shader {
 		}
 	}
 
-	/* @param {array} */
+	/* @param {Array} */
 	/* [{name: String, type: Renderer.Uniform}] */
 	$setupUniform(uniforms) {
 		const gl = this.$m_gl;

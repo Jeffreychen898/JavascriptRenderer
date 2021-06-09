@@ -21,7 +21,7 @@ class $Renderer_Main {
 		//collections of methods
 		this.draw = {
 			rect: (x, y, width, height, properties) => {
-				this.$drawRectangle(x, y, width, height, properties)
+				this.$drawImage(this.$m_whiteTexture, x, y, width, height, properties);
 			},
 			image: (image, x, y, width, height, properties) => {
 				this.$drawImage(image, x, y, width, height, properties);
@@ -118,15 +118,6 @@ class $Renderer_Main {
 		];
 
 		this.$render(this.$m_shaderProgram);
-	}
-
-	/* @param {number, number, number, number, Object} */
-	/* {
-		color: [number, number, number]
-	}*/
-	$drawRectangle(x, y, width, height, properties) {
-		this.$m_whiteTexture.bindTexture(0);
-		this.$drawImage(this.$m_whiteTexture, x, y, width, height, properties);
 	}
 
 	/* @param {Program} */
