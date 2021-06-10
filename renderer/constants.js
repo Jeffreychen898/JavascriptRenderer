@@ -12,6 +12,12 @@ let $RendererVariable = {
 			Image: 0,
 			ByteArray: 1
 		}
+	},
+	Math: {
+		Type: {
+			Matrix4: 0,
+			Vector4: 1
+		}
 	}
 };
 

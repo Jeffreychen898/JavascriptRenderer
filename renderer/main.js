@@ -1,6 +1,7 @@
 const $R = {
 	Create: {
-		Renderer: (config) => { return new $Renderer_Main(config); }
+		Renderer: (config) => { return new $Renderer_Main(config); },
+		Matrix4: (matrix) => { return new $Matrix4(matrix); }
 	}
 }
 
