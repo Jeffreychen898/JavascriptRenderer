@@ -1,7 +1,12 @@
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
-		Matrix4: (matrix) => { return new $Matrix4(matrix); }
+		Matrix4: (matrix) => { return new $Renderer_Matrix4(matrix); }
+	},
+	Apply: {
+		Rotation: (matrix, angle) => { return $Renderer_RotateZMatrix(matrix, angle) },
+		Translate: (matrix, x, y, z) => { return $Renderer_TranslateMatrix(matrix, x, y, z) },
+		Scale: (matrix, x, y, z) => { return $Renderer_ScaleMatrix(matrix, x, y, z) }
 	}
 }
 
@@ -22,12 +27,15 @@ class $Renderer_Main {
 		//collections of methods
 		this.draw = {
 			rect: (x, y, width, height, properties) => {
+				if(!properties) properties = {};
 				this.$drawImage(this.$m_whiteTexture, x, y, width, height, properties);
 			},
 			image: (image, x, y, width, height, properties) => {
+				if(!properties) properties = {};
 				this.$drawImage(image, x, y, width, height, properties);
 			},
 			shader: (shader, x, y, width, height, attributes, properties) => {
+				if(!properties) properties = {};
 				this.$drawShaders(shader, x, y, width, height, attributes, properties);
 			}
 		}
@@ -44,6 +52,7 @@ class $Renderer_Main {
 	/* [{name: String, content: array, [optional]allVert: boolean} */
 	/* {
 		position: String
+		transformation: Matrix4
 	}*/
 	$drawShaders(shader, x, y, width, height, attributes, properties) {
 		if(!attributes)
@@ -55,6 +64,15 @@ class $Renderer_Main {
 			x + width, y + height,
 			x, y + height
 		];
+
+		if(properties.transformation) {
+			for(let i=0;i<4;i++) {
+				const pos = [triangleVertices[i * 2], triangleVertices[i * 2 + 1], 0, 1];
+				const res = properties.transformation.multiplyRaw(pos);
+				triangleVertices[i * 2] = res[0];
+				triangleVertices[i * 2 + 1] = res[1];
+			}
+		}
 
 		for(const attrib of attributes) {
 			if(attrib.allVert)
@@ -75,16 +93,15 @@ class $Renderer_Main {
 	}
 
 	/* @param{Texture, number, number, number, number, Object} */
-	/* {
+	/*
 		color: [number, number, number]
-	}*/
+		transformation: Matrix4
+	*/
 	$drawImage(image, x, y, width, height, properties) {
 		image.bindTexture(0);
 
 		let color = [1, 1, 1];
-		if(properties) {
-			if(properties.color) color = properties.color;
-		}
+		if(properties.color) color = properties.color;
 
 		const triangleVertices = [
 			x, y,
@@ -92,6 +109,15 @@ class $Renderer_Main {
 			x + width, y + height,
 			x, y + height
 		];
+
+		if(properties.transformation) {
+			for(let i=0;i<4;i++) {
+				const pos = [triangleVertices[i * 2], triangleVertices[i * 2 + 1], 0, 1];
+				const res = properties.transformation.multiplyRaw(pos);
+				triangleVertices[i * 2] = res[0];
+				triangleVertices[i * 2 + 1] = res[1];
+			}
+		}
 
 		const triangleColors = [
 			color[0], color[1], color[2],

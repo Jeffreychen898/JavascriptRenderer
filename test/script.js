@@ -1,4 +1,6 @@
 let texture;
+let transform_matrix;
+let ang = 0;
 window.onload = () => {
 	const config = {
 		canvas: "canvas"
@@ -7,12 +9,25 @@ window.onload = () => {
 	texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
 	texture.load();
 
+	transform_matrix = $R.Create.Matrix4();
+	transform_matrix = $R.Apply.Rotation(transform_matrix, 0.1);
+
 	animationLoop(renderer);
 }
 
 function animationLoop(renderer) {
 	renderer.draw.image(texture, 0, 0, 400, 400, {});
-	renderer.draw.rect(100, 100, 100, 100, {color: [1, 1, 0]});
+
+	transform_matrix.identity();
+	transform_matrix = $R.Apply.Translate(transform_matrix, 100, 100);
+	transform_matrix = $R.Apply.Rotation(transform_matrix, ang);
+	const rectangle_properties = {
+		color: [1, 1, 0],
+		transformation: transform_matrix
+	}
+	renderer.draw.rect(-50, -50, 100, 100, rectangle_properties);
+
+	ang += 0.1;
 
 	requestAnimationFrame(() => {
 		animationLoop(renderer)

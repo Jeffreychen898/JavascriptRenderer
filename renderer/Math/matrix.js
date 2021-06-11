@@ -1,4 +1,4 @@
-class $Matrix4 {
+class $Renderer_Matrix4 {
 	/* @param{optional Array} */
 	constructor(matrix) {
 		this.matrix = new Array(16);
@@ -20,25 +20,32 @@ class $Matrix4 {
 			return;
 		}
 
-		const num_of_columns = Math.floor(data.matrix.length / 4);
-		let result = new Array(4 * num_of_columns);
-
-		for(let i=0;i<4;i++) {
-			for(let j=0;j<num_of_columns;j++) {
-				const v1 = this.matrix[i * 4] * data.matrix[j];
-				const v2 = this.matrix[i * 4 + 1] * data.matrix[1 * num_of_columns + j];
-				const v3 = this.matrix[i * 4 + 2] * data.matrix[2 * num_of_columns + j];
-				const v4 = this.matrix[i * 4 + 3] * data.matrix[3 * num_of_columns + j];
-				result[i * 4 + j] = v1 + v2 + v3 + v4;
-			}
-		}
+		const result = this.multiplyRaw(data.matrix);
 
 		if(data.type == $RendererVariable.Math.Type.Matrix4)
-			return new $Matrix4(result);
+			return new $Renderer_Matrix4(result);
 		else if(data.type == $RendererVariable.Math.Type.Vector4)
 			return "Vector class not created yet :(";
 		else
 			return undefined;
+	}
+
+	/* @param {Array} */
+	multiplyRaw(data) {
+		const num_of_columns = Math.floor(data.length / 4);
+		let result = new Array(4 * num_of_columns);
+
+		for(let i=0;i<4;i++) {
+			for(let j=0;j<num_of_columns;j++) {
+				const v1 = this.matrix[i * 4] * data[j];
+				const v2 = this.matrix[i * 4 + 1] * data[1 * num_of_columns + j];
+				const v3 = this.matrix[i * 4 + 2] * data[2 * num_of_columns + j];
+				const v4 = this.matrix[i * 4 + 3] * data[3 * num_of_columns + j];
+				result[i * num_of_columns + j] = v1 + v2 + v3 + v4;
+			}
+		}
+
+		return result;
 	}
 
 	transpose() {
