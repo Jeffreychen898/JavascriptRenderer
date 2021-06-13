@@ -5,7 +5,8 @@ let $RendererVariable = {
 			BufferObject: undefined,
 			TextureSlot: 0,
 			Textures: []
-		}
+		},
+		MaxVertexCount: 10000
 	},
 	Texture: {
 		Type: {

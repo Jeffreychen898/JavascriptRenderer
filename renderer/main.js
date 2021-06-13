@@ -18,6 +18,7 @@ class $Renderer_Main {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
 
+		this.$m_vertexCount = 0;
 		this.$m_attributes = [];
 		this.$m_indices = [];
 
@@ -46,31 +47,64 @@ class $Renderer_Main {
 	createShader(vertexShader, fragmentShader, attributes, uniforms) {
 		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
 	}
+
+	flush() {
+		if(this.$m_vertexCount > 0)
+			this.$render(this.$m_currentBoundProgram);
+	}
 	
 	/* @private */
 	/* @param {Shader, number, number, number, number, array, Object} */
 	/* [{name: String, content: array, [optional]allVert: boolean} */
-	/* {
+	/*
+		texture: [Texture]
 		position: String
 		transformation: Matrix4
-	}*/
+	*/
 	$drawShaders(shader, x, y, width, height, attributes, properties) {
+		let texture_binding_list = [];
+		if(properties.texture) {
+			for(const i in properties.texture) {
+				if($RendererVariable.WebGL.Binding.Textures[i] != properties.texture[i].$m_texture)
+					texture_binding_list.push({texture: properties.texture[i], slot: i});
+			}
+		}
+
+		if(texture_binding_list.length > 0) {
+			this.$render(this.$m_currentBoundProgram);
+
+			for(const each_texture of texture_binding_list)
+				each_texture.texture.bindTexture(each_texture.slot);
+		}
+
+		if(shader != this.$m_currentBoundProgram)
+			this.$render(this.$m_currentBoundProgram);
+		else if(this.$m_vertexCount + 4 > $RendererVariable.WebGL.MaxVertexCount)
+			this.$render(this.$m_currentBoundProgram);
+
+
 		if(!attributes)
 			attributes = [];
 
 		const positions = [
-			x, y,
-			x + width, y,
-			x + width, y + height,
-			x, y + height
+			x, y, 0,
+			x + width, y, 0,
+			x + width, y + height, 0,
+			x, y + height, 0
 		];
 
 		if(properties.transformation) {
 			for(let i=0;i<4;i++) {
-				const pos = [triangleVertices[i * 2], triangleVertices[i * 2 + 1], 0, 1];
-				const res = properties.transformation.multiplyRaw(pos);
-				triangleVertices[i * 2] = res[0];
-				triangleVertices[i * 2 + 1] = res[1];
+				const vertex_position = [
+					positions[i * 3],
+					positions[i * 3 + 1],
+					positions[i * 3 + 2],
+					1
+				];
+				const new_vertex_position = properties.transformation.multiplyRaw(vertex_position);
+				positions[i * 3] = new_vertex_position[0];
+				positions[i * 3 + 1] = new_vertex_position[1];
+				positions[i * 3 + 2] = new_vertex_position[2];
 			}
 		}
 
@@ -79,17 +113,28 @@ class $Renderer_Main {
 				attrib.content.push(...attrib.content, ...attrib.content, ...attrib.content);
 		}
 
-		this.$m_attributes = [
-			{name: properties.position || "a_position", content: positions},
-			...attributes
-		];
+		attributes.push({name: properties.position || "a_position", content: positions});
+		for(let i=0;i<attributes.length;i++) {
+			let found = false;
+			for(let j=0;j<this.$m_attributes.length;j++) {
+				if(attributes[i].name == this.$m_attributes[j].name) {
+					this.$m_attributes[j].content.push(...(attributes[i].content));
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				this.$m_attributes.push(attributes[i]);
+			}
+		}
 
-		this.$m_indices = [
-			0, 1, 2,
-			0, 2, 3
-		];
+		this.$m_indices.push(
+			this.$m_vertexCount, this.$m_vertexCount + 1, this.$m_vertexCount + 2,
+			this.$m_vertexCount, this.$m_vertexCount + 2, this.$m_vertexCount + 3
+		);
 
-		this.$render(shader);
+		this.$m_vertexCount += 4;
+		this.$m_currentBoundProgram = shader;
 	}
 
 	/* @param{Texture, number, number, number, number, Object} */
@@ -98,53 +143,55 @@ class $Renderer_Main {
 		transformation: Matrix4
 	*/
 	$drawImage(image, x, y, width, height, properties) {
-		image.bindTexture(0);
-
-		let color = [1, 1, 1];
-		if(properties.color) color = properties.color;
-
-		const triangleVertices = [
-			x, y,
-			x + width, y,
-			x + width, y + height,
-			x, y + height
-		];
-
-		if(properties.transformation) {
-			for(let i=0;i<4;i++) {
-				const pos = [triangleVertices[i * 2], triangleVertices[i * 2 + 1], 0, 1];
-				const res = properties.transformation.multiplyRaw(pos);
-				triangleVertices[i * 2] = res[0];
-				triangleVertices[i * 2 + 1] = res[1];
+		let color = [255, 255, 255, 255];
+		if(typeof(properties.color) == "object") {
+			switch(properties.color.length) {
+				case 1:
+					color = [
+						properties.color[0],
+						properties.color[0],
+						properties.color[0],
+						properties.color[0]
+					];
+					break;
+				case 2:
+					color = [
+						properties.color[0],
+						properties.color[0],
+						properties.color[0],
+						properties.color[1]
+					];
+					break;
+				case 3:
+					color = [
+						properties.color[0],
+						properties.color[1],
+						properties.color[2],
+						255
+					];
+					break;
+				case 4:
+					color = [...properties.color];
+					break;
 			}
-		}
+		};
+		for(let i=0;i<color.length;i++)
+			color[i] = color[i] / 255;
 
-		const triangleColors = [
-			color[0], color[1], color[2],
-			color[0], color[1], color[2],
-			color[0], color[1], color[2],
-			color[0], color[1], color[2],
-		];
-
-		const triangleTexCoords = [
+		const tex_coords = [
 			0, 0,
 			1, 0,
 			1, 1,
 			0, 1
 		];
 
-		this.$m_attributes = [
-			{name: "a_position", content: triangleVertices},
-			{name: "a_color", content: triangleColors},
-			{name: "a_texCoord", content: triangleTexCoords}
+		const attributes = [
+			{name: "a_color", content: color, allVert: true},
+			{name: "a_texCoord", content: tex_coords, allVert: false}
 		];
 
-		this.$m_indices = [
-			0, 1, 2,
-			0, 2, 3
-		];
-
-		this.$render(this.$m_shaderProgram);
+		properties.texture = [image];
+		this.$drawShaders(this.$m_shaderProgram, x, y, width, height, attributes, properties);
 	}
 
 	/* @param {Program} */
@@ -160,6 +207,7 @@ class $Renderer_Main {
 		gl.drawElements(gl.TRIANGLES, this.$m_indices.length, gl.UNSIGNED_SHORT, 0);
 
 		this.$clearAttribs();
+		this.$m_vertexCount = 0;
 	}
 
 	$clearAttribs() {
@@ -180,6 +228,9 @@ class $Renderer_Main {
 	$setupRendering() {
 		const gl = this.$m_gl;
 
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 		Renderer.MaxTextureSlot = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
 
 		gl.clearColor(0, 0, 0, 1);
@@ -188,11 +239,11 @@ class $Renderer_Main {
 		const attribs = [
 			{
 				name: "a_position",
-				size: 2
+				size: 3
 			},
 			{
 				name: "a_color",
-				size: 3
+				size: 4
 			},
 			{
 				name: "a_texCoord",
@@ -215,6 +266,9 @@ class $Renderer_Main {
 
 		this.$m_shaderProgram.setUniform("projection", matrix);
 		this.$m_shaderProgram.setUniform("u_texture", 0);
+
+		this.$m_shaderProgram.bind();
+		this.$m_currentBoundProgram = this.$m_shaderProgram;
 	}
 }
 
