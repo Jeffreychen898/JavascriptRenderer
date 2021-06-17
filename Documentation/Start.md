@@ -9,9 +9,11 @@ HTML:
 <html>
     <head>
         <title>Javascript Renderer Setup</title>
+        <script src="renderer.js"></script>
     </head>
     <body>
         <canvas id="canvasID" width=800 height=600></canvas>
+        <script src="script.js"></script>
     </body>
 </html>
 ```
