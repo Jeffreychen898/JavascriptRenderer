@@ -1,12 +1,48 @@
-let texture;
+let a = 0;
+let frameBuffer;
+window.onload = () => {
+	const config = {
+		canvas: "canvas",
+		canvasWidth: 400,
+		canvasHeight: 400
+	};
+	const renderer = $R.Create.Renderer(config);
+
+	frameBuffer = renderer.createTextureBuffer(400, 400);
+	
+	animationLoop(renderer);
+}
+
+function animationLoop(renderer) {
+
+	const properties = {
+		color: [255, 0, 255]
+	};
+	renderer.draw.rect(0, 0, 400, 400, {color: [0], textureBuffer: frameBuffer});
+	renderer.draw.rect(100, 100, 100, 100, {color: [255, 255, 0], textureBuffer: frameBuffer});
+
+	renderer.draw.rect(a % 400, 100, 100, 100, properties);
+	a += 5;
+
+	renderer.flush();
+
+	requestAnimationFrame(() => {
+		animationLoop(renderer);
+	});
+}
+
+/*let texture;
 let transform_matrix;
 let ang = 0;
 let last_time;
 let fps;
 let drawcall = 0;
+let camera;
 window.onload = () => {
 	const config = {
-		canvas: "canvas"
+		canvas: "canvas",
+		canvasWidth: 400,
+		canvasHeight: 400
 	};
 	const renderer = $R.Create.Renderer(config);
 	texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
@@ -16,6 +52,16 @@ window.onload = () => {
 	transform_matrix = $R.Apply.Rotation(transform_matrix, 0.1);
 	last_time = new Date().getTime();
 
+	camera = $R.Create.Camera2D(0, 400, 0, 400);
+
+	document.addEventListener("keydown", (e) => {
+		if(e.keyCode == 38) {
+			camera = $R.Create.Camera2D(0, 800, 0, 800);
+		} else if(e.keyCode == 40) {
+			camera = $R.Create.Camera2D(0, 400, 0, 400);
+		}
+	})
+
 	animationLoop(renderer);
 }
 
@@ -24,6 +70,8 @@ function animationLoop(renderer) {
 	//console.log(1 / ((current - last_time) / 1000));
 	fps = 1 / ((current - last_time) / 1000);
 	last_time = current;
+
+	//renderer.setCamera(camera);
 
 	renderer.draw.image(texture, 0, 0, 400, 400, {});
 
@@ -49,7 +97,7 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer)
 	});
-}
+}*/
 
 /*
 const config = {

@@ -1,7 +1,8 @@
 const $R = {
 	Create: {
 		Renderer: (config) => { return new $Renderer_Main(config); },
-		Matrix4: (matrix) => { return new $Renderer_Matrix4(matrix); }
+		Matrix4: (matrix) => { return new $Renderer_Matrix4(matrix); },
+		Camera2D: (left, right, top, down) => { return new $Renderer_Camera2D(left, right, top, down); }
 	},
 	Apply: {
 		Rotation: (matrix, angle) => { return $Renderer_RotateZMatrix(matrix, angle) },
@@ -13,10 +14,19 @@ const $R = {
 class $Renderer_Main {
 	/* @param {Object}
 	 * canvas: canvas id 
+	 * canvasWidth: number
+	 * canvasHeight: number
 	*/
 	constructor(config) {
 		this.$m_canvas = document.getElementById(config.canvas);
 		this.$m_gl = this.$m_canvas.getContext("webgl2");
+
+		this.$m_properties = {
+			canvasSize: {
+				width: config.canvasWidth || this.$m_canvas.width,
+				height: config.canvasHeight || this.$m_canvas.height
+			}
+		};
 
 		this.$m_vertexCount = 0;
 		this.$m_attributes = [];
@@ -48,9 +58,23 @@ class $Renderer_Main {
 		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
 	}
 
+	/* @param {number, number} */
+	createTextureBuffer(width, height) {
+		const texture_buffer = new $Renderer_TextureBuffer(this.$m_gl, width, height);
+		texture_buffer.create();
+		
+		return texture_buffer;
+	}
+
 	flush() {
 		if(this.$m_vertexCount > 0)
 			this.$render(this.$m_currentBoundProgram);
+	}
+
+	/* @param {Matrix4} */
+	setCamera(camera) {
+		this.flush();
+		this.$m_shaderProgram.setUniform("u_projection", camera.matrix);
 	}
 	
 	/* @private */
@@ -60,8 +84,19 @@ class $Renderer_Main {
 		texture: [Texture]
 		position: String
 		transformation: Matrix4
+		textureBuffer: TextureBuffer
 	*/
 	$drawShaders(shader, x, y, width, height, attributes, properties) {
+		if(!properties.textureBuffer) {
+			if($RendererVariable.WebGL.Binding.FrameBuffer != null)
+				this.flush();
+			$Renderer_BindDefaultFrameBuffer(this.$m_gl);
+		} else {
+			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer)
+				this.flush();
+			properties.textureBuffer.bind();
+		}
+
 		let texture_binding_list = [];
 		if(properties.texture) {
 			for(const i in properties.texture) {
@@ -71,7 +106,7 @@ class $Renderer_Main {
 		}
 
 		if(texture_binding_list.length > 0) {
-			this.$render(this.$m_currentBoundProgram);
+			this.flush();
 
 			for(const each_texture of texture_binding_list)
 				each_texture.texture.bindTexture(each_texture.slot);
@@ -151,7 +186,7 @@ class $Renderer_Main {
 						properties.color[0],
 						properties.color[0],
 						properties.color[0],
-						properties.color[0]
+						255
 					];
 					break;
 				case 2:
@@ -228,6 +263,9 @@ class $Renderer_Main {
 	$setupRendering() {
 		const gl = this.$m_gl;
 
+		gl.enable(gl.DEPTH_TEST);
+		gl.depthFunc(gl.LEQUAL);
+
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -252,19 +290,21 @@ class $Renderer_Main {
 		];
 
 		const uniforms = [
-			{name: "projection", type: Renderer.Uniform.Matrix4},
+			{name: "u_projection", type: Renderer.Uniform.Matrix4},
 			{name: "u_texture", type: Renderer.Uniform.Integer}
 		];
 
+		const canvasWidth = this.$m_properties.canvasSize.width;
+		const canvasHeight = this.$m_properties.canvasSize.height;
 		const matrix = [
-			2/400, 0, 0, -1,
-			0, 2/-400, 0, 1,
+			2/canvasWidth, 0, 0, -1,
+			0, 2/-canvasHeight, 0, 1,
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		];
 		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.default.vert, $ShaderCode.default.frag, attribs, uniforms);
 
-		this.$m_shaderProgram.setUniform("projection", matrix);
+		this.$m_shaderProgram.setUniform("u_projection", matrix);
 		this.$m_shaderProgram.setUniform("u_texture", 0);
 
 		this.$m_shaderProgram.bind();

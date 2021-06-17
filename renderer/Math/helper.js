@@ -29,3 +29,13 @@ function $Renderer_ScaleMatrix(matrix, x, y, z) {
 	];
 	return new $Renderer_Matrix4(matrix.multiplyRaw(transformation_matrix));
 }
+
+function $Renderer_Camera2D(left, right, top, down) {
+	const projection_matrix = [
+		2 / (right - left), 0, 0, -(right + left)/(right - left),
+		0, 2 / (top - down), 0, -(top + down)/(top - down),
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	];
+	return new $Renderer_Matrix4(projection_matrix);
+}

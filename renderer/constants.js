@@ -3,6 +3,7 @@ let $RendererVariable = {
 		Binding: {
 			Shader: undefined,
 			BufferObject: undefined,
+			FrameBuffer: null,
 			TextureSlot: 0,
 			Textures: []
 		},
