@@ -1,4 +1,4 @@
-const vert = `
+/*const vert = `
 attribute vec3 a_position;
 
 uniform mat4 u_projection;
@@ -67,9 +67,9 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer);
 	});
-}
+}*/
 
-/*let texture;
+let texture;
 let transform_matrix;
 let ang = 0;
 let last_time;
@@ -135,7 +135,7 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer)
 	});
-}*/
+}
 
 /*
 const config = {

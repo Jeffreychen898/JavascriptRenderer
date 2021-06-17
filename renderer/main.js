@@ -176,6 +176,7 @@ class $Renderer_Main {
 	/*
 		color: [number, number, number]
 		transformation: Matrix4
+		textureBuffer: Texture Buffer
 	*/
 	$drawImage(image, x, y, width, height, properties) {
 		let color = [255, 255, 255, 255];
