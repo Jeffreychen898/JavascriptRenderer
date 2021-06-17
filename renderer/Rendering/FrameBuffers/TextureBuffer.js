@@ -38,10 +38,6 @@ class $Renderer_TextureBuffer {
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.$m_renderbuffer);
 
-		// error checking
-		if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE)
-			console.log("lsdjflaskjdf error");
-		
 		gl.bindFramebuffer(gl.FRAMEBUFFER, $RendererVariable.WebGL.Binding.FrameBuffer);
 	}
 

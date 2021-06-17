@@ -1,4 +1,4 @@
-/*const vert = `
+const vert = `
 attribute vec3 a_position;
 
 uniform mat4 u_projection;
@@ -29,7 +29,7 @@ window.onload = () => {
 	};
 	const renderer = $R.Create.Renderer(config);
 
-	frameBuffer = renderer.createTextureBuffer(400, 400);
+	frameBuffer = renderer.create.textureBuffer(400, 400);
 
 	const attribs = [
 		{
@@ -38,7 +38,7 @@ window.onload = () => {
 		}
 	];
 	const matrix = $Renderer_Camera2D(0, 400, 0, 400);
-	shader = renderer.createShader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
+	shader = renderer.create.shader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
 	shader.setUniform("u_projection", matrix.matrix);
 	
 	last_time = new Date().getTime();
@@ -67,8 +67,8 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer);
 	});
-}*/
-
+}
+/*
 let texture;
 let transform_matrix;
 let ang = 0;
@@ -83,8 +83,8 @@ window.onload = () => {
 		canvasHeight: 400
 	};
 	const renderer = $R.Create.Renderer(config);
-	texture = new Texture(renderer.$m_gl, "https://i.imgur.com/oo7ZNVs.jpg?1");
-	texture.load();
+
+	texture = renderer.create.texture("https://i.imgur.com/oo7ZNVs.jpg?1");
 
 	transform_matrix = $R.Create.Matrix4();
 	transform_matrix = $R.Apply.Rotation(transform_matrix, 0.1);
@@ -122,8 +122,8 @@ function animationLoop(renderer) {
 		transformation: transform_matrix
 	}
 
-	//for(let i=0;i<10000;i++)
-		//renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 50]});
+	for(let i=0;i<10000;i++)
+		renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 255]});
 
 	renderer.draw.rect(-50, -50, 100, 100, rectangle_properties);
 
@@ -135,7 +135,7 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer)
 	});
-}
+}*/
 
 /*
 const config = {

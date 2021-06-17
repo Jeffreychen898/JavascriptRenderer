@@ -50,20 +50,28 @@ class $Renderer_Main {
 				this.$drawShaders(shader, x, y, width, height, attributes, properties);
 			}
 		}
-	}
 
-	/* @param{String, String, [Object]} */
-	/* [{name: String, size: number}] */
-	createShader(vertexShader, fragmentShader, attributes, uniforms) {
-		return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
-	}
+		this.create = {
+			/* @param {String} */
+			texture: (source) => {
+				const new_texture = new Texture(this.$m_gl, source);
+				new_texture.load();
 
-	/* @param {number, number} */
-	createTextureBuffer(width, height) {
-		const texture_buffer = new $Renderer_TextureBuffer(this.$m_gl, width, height);
-		texture_buffer.create();
-		
-		return texture_buffer;
+				return new_texture;
+			},
+			/* @param {String, String, [Object]} */
+			/* [{name: String, size: number}] */
+			shader: (vertexShader, fragmentShader, attributes, uniforms) => {
+				return new $Renderer_Shader(this.$m_gl, vertexShader, fragmentShader, attributes, uniforms);
+			},
+			/* @param {number, number} */
+			textureBuffer: (width, height) => {
+				const texture_buffer = new $Renderer_TextureBuffer(this.$m_gl, width, height);
+				texture_buffer.create();
+
+				return texture_buffer;
+			}
+		}
 	}
 
 	flush() {
