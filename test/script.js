@@ -1,5 +1,26 @@
+const vert = `
+attribute vec3 a_position;
+
+uniform mat4 u_projection;
+
+void main() {
+	gl_Position = u_projection * vec4(a_position.xy, -0.5, 1.0);
+}
+`;
+
+const frag = `
+precision mediump float;
+
+void main() {
+	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+`;
+
 let a = 0;
 let frameBuffer;
+let last_time;
+
+let shader;
 window.onload = () => {
 	const config = {
 		canvas: "canvas",
@@ -9,19 +30,36 @@ window.onload = () => {
 	const renderer = $R.Create.Renderer(config);
 
 	frameBuffer = renderer.createTextureBuffer(400, 400);
+
+	const attribs = [
+		{
+			name: "a_position",
+			size: 3
+		}
+	];
+	const matrix = $Renderer_Camera2D(0, 400, 0, 400);
+	shader = renderer.createShader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
+	shader.setUniform("u_projection", matrix.matrix);
 	
+	last_time = new Date().getTime();
 	animationLoop(renderer);
 }
 
 function animationLoop(renderer) {
+	const current = new Date().getTime();
+	//console.log(1 / ((current - last_time) / 1000));
+	fps = 1 / ((current - last_time) / 1000);
+	last_time = current;
 
 	const properties = {
 		color: [255, 0, 255]
 	};
 	renderer.draw.rect(0, 0, 400, 400, {color: [0], textureBuffer: frameBuffer});
-	renderer.draw.rect(100, 100, 100, 100, {color: [255, 255, 0], textureBuffer: frameBuffer});
+	renderer.draw.rect(a % 400, 100, 100, 100, {color: [255, 255, 0], textureBuffer: frameBuffer});
 
+	//renderer.draw.shader(shader, 100, 150, 100, 100, [], {textureBuffer: frameBuffer});
 	renderer.draw.rect(a % 400, 100, 100, 100, properties);
+	renderer.draw.image(frameBuffer, 0, 0, 100, 100);
 	a += 5;
 
 	renderer.flush();
@@ -84,8 +122,8 @@ function animationLoop(renderer) {
 		transformation: transform_matrix
 	}
 
-	for(let i=0;i<10000;i++)
-		renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 50]});
+	//for(let i=0;i<10000;i++)
+		//renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 50]});
 
 	renderer.draw.rect(-50, -50, 100, 100, rectangle_properties);
 

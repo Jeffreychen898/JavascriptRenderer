@@ -7,7 +7,7 @@ class $Renderer_TextureBuffer {
 		this.height = height;
 
 		this.$m_framebuffer;
-		this.$m_framebufferTexture;
+		this.$m_texture;
 
 		this.$m_renderbuffer;
 	}
@@ -19,8 +19,8 @@ class $Renderer_TextureBuffer {
 		this.$m_framebuffer = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.$m_framebuffer);
 
-		this.$m_framebufferTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, this.$m_framebufferTexture);
+		this.$m_texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, this.$m_texture);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -29,7 +29,7 @@ class $Renderer_TextureBuffer {
 		const initial_texture = $RendererVariable.WebGL.Binding.Textures[current_texture_slot];
 		gl.bindTexture(gl.TEXTURE_2D, initial_texture);
 
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.$m_framebufferTexture, 0);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.$m_texture, 0);
 		
 		// create the render buffer object
 		this.$m_renderbuffer = gl.createRenderbuffer();
@@ -51,6 +51,32 @@ class $Renderer_TextureBuffer {
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.$m_framebuffer);
 			$RendererVariable.WebGL.Binding.FrameBuffer = this.$m_framebuffer;
+		}
+	}
+
+	/* @param {number} */
+	bindTexture(texSlot) {
+		const gl = this.$m_gl;
+
+		if(!Renderer.MaxTextureSlot) {
+			console.error("[ERROR] Renderer has not been initialized properly!");
+			return;
+		}
+
+		if(texSlot > Renderer.MaxTextureSlot) {
+			console.error(`[ERROR] The max texture slot of ${Renderer.MaxTextureSlot} has been reached`);
+			return;
+		}
+
+		const tex_slot = $RendererVariable.WebGL.Binding.TextureSlot;
+		if($RendererVariable.WebGL.Binding.Textures[texSlot] != this.$m_texture) {
+			if(texSlot != tex_slot) {
+				gl.activeTexture(gl.TEXTURE0 + texSlot);
+				$RendererVariable.WebGL.Binding.TextureSlot = texSlot;
+			}
+
+			gl.bindTexture(gl.TEXTURE_2D, this.$m_texture);
+			$RendererVariable.WebGL.Binding.Textures[tex_slot] = this.$m_texture;
 		}
 	}
 }

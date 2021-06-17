@@ -214,10 +214,10 @@ class $Renderer_Main {
 			color[i] = color[i] / 255;
 
 		const tex_coords = [
-			0, 0,
-			1, 0,
+			0, 1,
 			1, 1,
-			0, 1
+			1, 0,
+			0, 0
 		];
 
 		const attributes = [

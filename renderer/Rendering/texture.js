@@ -88,7 +88,10 @@ class Texture {
 		canvas.height = height;
 		const context = canvas.getContext("2d");
 
-		context.drawImage(image, 0, 0);
+		context.fillStyle="black";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		context.scale(1, -1);
+		context.drawImage(image, 0, -canvas.height);
 		return canvas;
 	}
 }
