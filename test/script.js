@@ -1,4 +1,4 @@
-/*const vert = `
+const vert = `
 attribute vec3 a_position;
 
 uniform mat4 u_projection;
@@ -21,6 +21,9 @@ let frameBuffer;
 let last_time;
 
 let shader;
+
+let mat;
+let def;
 window.onload = () => {
 	const config = {
 		canvas: "canvas",
@@ -29,7 +32,7 @@ window.onload = () => {
 	};
 	const renderer = $R.Create.Renderer(config);
 
-	frameBuffer = renderer.create.textureBuffer(400, 400);
+	frameBuffer = renderer.create.textureBuffer(100, 100);
 
 	const attribs = [
 		{
@@ -37,9 +40,10 @@ window.onload = () => {
 			size: 3
 		}
 	];
-	const matrix = $Renderer_Camera2D(0, 400, 0, 400);
-	shader = renderer.create.shader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
-	shader.setUniform("u_projection", matrix.matrix);
+	mat = $R.Create.Camera2D(0, 100, 0, 100);
+	def = $R.Create.Camera2D(0, 400, 0, 400);
+	//shader = renderer.create.shader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
+	//shader.setUniform("u_projection", matrix.matrix);
 	
 	last_time = new Date().getTime();
 	animationLoop(renderer);
@@ -55,7 +59,7 @@ function animationLoop(renderer) {
 		color: [255, 0, 255]
 	};
 	renderer.draw.rect(0, 0, 400, 400, {color: [0], textureBuffer: frameBuffer});
-	renderer.draw.rect(a % 400, 100, 100, 100, {color: [255, 255, 0], textureBuffer: frameBuffer});
+	renderer.draw.rect((a/4) % 100, 40, 20, 20, {color: [255, 255, 0], textureBuffer: frameBuffer});
 
 	//renderer.draw.shader(shader, 100, 150, 100, 100, [], {textureBuffer: frameBuffer});
 	renderer.draw.rect(a % 400, 100, 100, 100, properties);
@@ -67,8 +71,8 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer);
 	});
-}*/
-
+}
+/*
 let texture;
 let transform_matrix;
 let ang = 0;
@@ -135,7 +139,7 @@ function animationLoop(renderer) {
 	requestAnimationFrame(() => {
 		animationLoop(renderer)
 	});
-}
+}*/
 
 /*
 const config = {

@@ -99,10 +99,13 @@ class $Renderer_Main {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != null)
 				this.flush();
 			$Renderer_BindDefaultFrameBuffer(this.$m_gl);
+			this.$m_gl.viewport(0, 0, this.$m_properties.canvasSize.width, this.$m_properties.canvasSize.height);
+			this.setCamera(this.$m_defaultCamera);
 		} else {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer)
 				this.flush();
 			properties.textureBuffer.bind();
+			this.setCamera(properties.textureBuffer.defaultCamera);
 		}
 
 		let texture_binding_list = [];
@@ -305,15 +308,10 @@ class $Renderer_Main {
 
 		const canvasWidth = this.$m_properties.canvasSize.width;
 		const canvasHeight = this.$m_properties.canvasSize.height;
-		const matrix = [
-			2/canvasWidth, 0, 0, -1,
-			0, 2/-canvasHeight, 0, 1,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		];
+		this.$m_defaultCamera = new $Renderer_Camera2D(0, canvasWidth, 0, canvasHeight);
 		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.default.vert, $ShaderCode.default.frag, attribs, uniforms);
 
-		this.$m_shaderProgram.setUniform("u_projection", matrix);
+		this.$m_shaderProgram.setUniform("u_projection", this.$m_defaultCamera.matrix);
 		this.$m_shaderProgram.setUniform("u_texture", 0);
 
 		this.$m_shaderProgram.bind();

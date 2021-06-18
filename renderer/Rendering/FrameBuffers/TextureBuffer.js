@@ -6,6 +6,8 @@ class $Renderer_TextureBuffer {
 		this.width = width;
 		this.height = height;
 
+		this.defaultCamera = new $Renderer_Camera2D(0, width, 0, height);
+
 		this.$m_framebuffer;
 		this.$m_texture;
 
@@ -46,6 +48,7 @@ class $Renderer_TextureBuffer {
 			const gl = this.$m_gl;
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.$m_framebuffer);
+			gl.viewport(0, 0, this.width, this.height);
 			$RendererVariable.WebGL.Binding.FrameBuffer = this.$m_framebuffer;
 		}
 	}
