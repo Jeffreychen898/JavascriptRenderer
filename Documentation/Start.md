@@ -42,7 +42,7 @@ function animationLoop(renderer) {
 
 ### The flush() function
 
-The flush function is used to flush all the shape out. When you are calling different rendering methods, the library will cache all the information you passed in. Whenever certain limits are reached, the shapes will finally be rendered out onto the screen**(Batch Rendering)**. This is done to optimize the rendering by drawing multiple shapes at once. However, by the end of each frame, the limit for your shapes will most likely not be reached. You must call flush to render all the remaining shapes out onto the screen.
+The flush function is used to flush all the shape out. When you are calling different rendering methods, the library will cache all the information you passed in. Whenever certain limits are reached, the shapes will finally be rendered out onto the screen **(Batch Rendering)**. This is done to optimize the rendering by drawing multiple shapes at once. However, by the end of each frame, the limit for your shapes will most likely not be reached. You must call flush to render all the remaining shapes out onto the screen.
 
 ## Drawing Methods
 
