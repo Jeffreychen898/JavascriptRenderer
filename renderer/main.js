@@ -82,6 +82,7 @@ class $Renderer_Main {
 	/* @param {Matrix4} */
 	setCamera(camera) {
 		this.flush();
+		this.$m_defaultCamera = camera;
 		this.$m_shaderProgram.setUniform("u_projection", camera.matrix);
 	}
 	
@@ -105,7 +106,8 @@ class $Renderer_Main {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer)
 				this.flush();
 			properties.textureBuffer.bind();
-			this.setCamera(properties.textureBuffer.defaultCamera);
+			this.flush();
+			this.$m_shaderProgram.setUniform("u_projection", properties.textureBuffer.defaultCamera.matrix);
 		}
 
 		let texture_binding_list = [];
@@ -120,7 +122,7 @@ class $Renderer_Main {
 			this.flush();
 
 			for(const each_texture of texture_binding_list)
-				each_texture.texture.bindTexture(each_texture.slot);
+				each_texture.texture.bindTexture(parseInt(each_texture.slot));
 		}
 
 		if(shader != this.$m_currentBoundProgram)

@@ -255,6 +255,11 @@ class $Renderer_TextureBuffer {
 		}
 	}
 
+	setCamera(renderer, camera) {
+		renderer.flush();
+		this.defaultCamera = camera;
+	}
+
 	/* @param {number} */
 	bindTexture(texSlot) {
 		const gl = this.$m_gl;
@@ -365,6 +370,8 @@ class $Renderer_Shader {
 	/* @param {String, Array|number} */
 	setUniform(name, data) {
 		const gl = this.$m_gl;
+
+		this.bind();
 
 		if(this.$m_uniformLocations.has(name)) {
 			this.$m_uniformData.set(name, data);
@@ -654,6 +661,7 @@ class $Renderer_Main {
 	/* @param {Matrix4} */
 	setCamera(camera) {
 		this.flush();
+		this.$m_defaultCamera = camera;
 		this.$m_shaderProgram.setUniform("u_projection", camera.matrix);
 	}
 	
@@ -677,7 +685,8 @@ class $Renderer_Main {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer)
 				this.flush();
 			properties.textureBuffer.bind();
-			this.setCamera(properties.textureBuffer.defaultCamera);
+			this.flush();
+			this.$m_shaderProgram.setUniform("u_projection", properties.textureBuffer.defaultCamera.matrix);
 		}
 
 		let texture_binding_list = [];
@@ -692,7 +701,7 @@ class $Renderer_Main {
 			this.flush();
 
 			for(const each_texture of texture_binding_list)
-				each_texture.texture.bindTexture(each_texture.slot);
+				each_texture.texture.bindTexture(parseInt(each_texture.slot));
 		}
 
 		if(shader != this.$m_currentBoundProgram)

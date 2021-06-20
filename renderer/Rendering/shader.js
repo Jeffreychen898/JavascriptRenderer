@@ -42,6 +42,8 @@ class $Renderer_Shader {
 	setUniform(name, data) {
 		const gl = this.$m_gl;
 
+		this.bind();
+
 		if(this.$m_uniformLocations.has(name)) {
 			this.$m_uniformData.set(name, data);
 			

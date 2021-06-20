@@ -53,6 +53,11 @@ class $Renderer_TextureBuffer {
 		}
 	}
 
+	setCamera(renderer, camera) {
+		renderer.flush();
+		this.defaultCamera = camera;
+	}
+
 	/* @param {number} */
 	bindTexture(texSlot) {
 		const gl = this.$m_gl;
