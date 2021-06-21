@@ -29,6 +29,7 @@ class $Renderer_Main {
 		};
 
 		this.$m_vertexCount = 0;
+		this.$m_attributesTracker = new Map();
 		this.$m_attributes = [];
 		this.$m_indices = [];
 
@@ -96,43 +97,47 @@ class $Renderer_Main {
 		textureBuffer: TextureBuffer
 	*/
 	$drawShaders(shader, x, y, width, height, attributes, properties) {
+		let is_flushed = false;
+
+		//texture buffers
 		if(!properties.textureBuffer) {
-			if($RendererVariable.WebGL.Binding.FrameBuffer != null)
+			if($RendererVariable.WebGL.Binding.FrameBuffer != null && !is_flushed) {
 				this.flush();
+				is_flushed = true;
+			}
 			$Renderer_BindDefaultFrameBuffer(this.$m_gl);
 			this.$m_gl.viewport(0, 0, this.$m_properties.canvasSize.width, this.$m_properties.canvasSize.height);
 			this.setCamera(this.$m_defaultCamera);
 		} else {
-			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer)
+			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer && !is_flushed) {
 				this.flush();
+				is_flushed = true;
+			}
 			properties.textureBuffer.bind();
-			this.flush();
 			this.$m_shaderProgram.setUniform("u_projection", properties.textureBuffer.defaultCamera.matrix);
 		}
 
-		let texture_binding_list = [];
+		//textures and texture slots
 		if(properties.texture) {
-			for(const i in properties.texture) {
-				if($RendererVariable.WebGL.Binding.Textures[i] != properties.texture[i].$m_texture)
-					texture_binding_list.push({texture: properties.texture[i], slot: i});
+			for(let i=0;i<properties.texture.length;i++) {
+				if($RendererVariable.WebGL.Binding.Textures[i] != properties.texture[i].$m_texture) {
+					if(!is_flushed) {
+						this.flush();
+						is_flushed = true;
+					}
+					properties.texture[i].bindTexture(i);
+				}
 			}
 		}
 
-		if(texture_binding_list.length > 0) {
-			this.flush();
-
-			for(const each_texture of texture_binding_list)
-				each_texture.texture.bindTexture(parseInt(each_texture.slot));
-		}
-
+		//shader and vertex count
 		if(shader != this.$m_currentBoundProgram)
 			this.$render(this.$m_currentBoundProgram);
 		else if(this.$m_vertexCount + 4 > $RendererVariable.WebGL.MaxVertexCount)
 			this.$render(this.$m_currentBoundProgram);
 
-
-		if(!attributes)
-			attributes = [];
+		//attributes
+		if(!attributes) attributes = [];
 
 		const positions = [
 			x, y, 0,
@@ -157,22 +162,25 @@ class $Renderer_Main {
 		}
 
 		for(const attrib of attributes) {
-			if(attrib.allVert)
-				attrib.content.push(...attrib.content, ...attrib.content, ...attrib.content);
+			if(attrib.allVert) {
+				attrib.content = [
+					...attrib.content,
+					...attrib.content,
+					...attrib.content,
+					...attrib.content
+				];
+			}
 		}
 
 		attributes.push({name: properties.position || "a_position", content: positions});
+
 		for(let i=0;i<attributes.length;i++) {
-			let found = false;
-			for(let j=0;j<this.$m_attributes.length;j++) {
-				if(attributes[i].name == this.$m_attributes[j].name) {
-					this.$m_attributes[j].content.push(...(attributes[i].content));
-					found = true;
-					break;
-				}
-			}
-			if(!found) {
-				this.$m_attributes.push(attributes[i]);
+			const attribute_index = this.$m_attributesTracker.get(attributes[i].name);
+			if(typeof(attribute_index) == "number")
+				this.$m_attributes[attribute_index].content.push(...(attributes[i].content));
+			else {
+				this.$m_attributesTracker.set(attributes[i].name, this.$m_attributes.length);
+				this.$m_attributes.push({ name: attributes[i].name, content: attributes[i].content });
 			}
 		}
 
@@ -262,6 +270,7 @@ class $Renderer_Main {
 	$clearAttribs() {
 		this.$m_attributes = [];
 		this.$m_indices = [];
+		this.$m_attributesTracker = new Map();
 	}
 
 	$loadDefaultTextures() {
