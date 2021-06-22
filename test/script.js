@@ -16,6 +16,8 @@ void main() {
 }
 `;
 
+let renderer;
+
 let a = 0;
 let frameBuffer;
 let last_time;
@@ -24,13 +26,18 @@ let shader;
 
 let mat;
 let def;
+
+function onWindowResize() {
+	renderer.resizeCanvas(window.innerWidth, window.innerHeight);
+}
+
 window.onload = () => {
 	const config = {
 		canvas: "canvas",
 		canvasWidth: 400,
 		canvasHeight: 400
 	};
-	const renderer = $R.Create.Renderer(config);
+	renderer = $R.Create.Renderer(config);
 
 	frameBuffer = renderer.create.textureBuffer(100, 100);
 
@@ -44,6 +51,7 @@ window.onload = () => {
 	def = $R.Create.Camera2D(0, 400, 0, 400);
 	//shader = renderer.create.shader(vert, frag, attribs, [{name: "u_projection", type: Renderer.Uniform.Matrix4}]);
 	//shader.setUniform("u_projection", matrix.matrix);
+	window.addEventListener("resize", onWindowResize);
 	
 	last_time = new Date().getTime();
 	animationLoop(renderer);

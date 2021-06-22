@@ -86,6 +86,22 @@ class $Renderer_Main {
 		this.$m_defaultCamera = camera;
 		this.$m_shaderProgram.setUniform("u_projection", camera.matrix);
 	}
+
+	/* @param {number, number, boolean} */
+	resizeCanvas(width, height, adjustCamera) {
+		if(adjustCamera == undefined) adjustCamera = true;
+		this.$m_canvas.width = width;
+		this.$m_canvas.height = height;
+
+		this.$m_properties.canvasSize.width = width;
+		this.$m_properties.canvasSize.height = height;
+
+		if($RendererVariable.WebGL.Binding.FrameBuffer == null)
+			this.$m_gl.viewport(0, 0, width, height);
+		
+		if(adjustCamera)
+			this.setCamera(new $Renderer_Camera2D(0, width, 0, height));
+	}
 	
 	/* @private */
 	/* @param {Shader, number, number, number, number, array, Object} */
