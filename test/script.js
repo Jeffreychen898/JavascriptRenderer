@@ -31,7 +31,7 @@ function onWindowResize() {
 	renderer.resizeCanvas(window.innerWidth, window.innerHeight);
 }
 
-window.onload = () => {
+function everythingLoaded() {
 	const config = {
 		canvas: "canvas",
 		canvasWidth: 400,

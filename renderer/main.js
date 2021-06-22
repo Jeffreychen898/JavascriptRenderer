@@ -336,7 +336,7 @@ class $Renderer_Main {
 		const canvasWidth = this.$m_properties.canvasSize.width;
 		const canvasHeight = this.$m_properties.canvasSize.height;
 		this.$m_defaultCamera = new $Renderer_Camera2D(0, canvasWidth, 0, canvasHeight);
-		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.default.vert, $ShaderCode.default.frag, attribs, uniforms);
+		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.get("default").vert, $ShaderCode.get("default").frag, attribs, uniforms);
 
 		this.$m_shaderProgram.setUniform("u_projection", this.$m_defaultCamera.matrix);
 		this.$m_shaderProgram.setUniform("u_texture", 0);
