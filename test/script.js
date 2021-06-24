@@ -74,21 +74,26 @@ function animationLoop(renderer) {
 	renderer.draw.image(frameBuffer, 0, 0, 100, 100);
 	a += 5;
 
+	const shape = renderer.create.shape({color: [0, 150, 0]});
+	renderer.draw.vertex(shape, {x: 100, y: 100});
+	renderer.draw.vertex(shape, {x: 200, y: 100});
+	renderer.draw.vertex(shape, {x: 150, y: 200});
+	renderer.draw.shape(shape);
+
 	renderer.flush();
 
 	requestAnimationFrame(() => {
 		animationLoop(renderer);
 	});
 }
-/*
-let texture;
+
+/*let texture;
 let transform_matrix;
 let ang = 0;
 let last_time;
 let fps;
-let drawcall = 0;
 let camera;
-window.onload = () => {
+function everythingLoaded() {
 	const config = {
 		canvas: "canvas",
 		canvasWidth: 400,
@@ -135,13 +140,14 @@ function animationLoop(renderer) {
 	}
 
 	for(let i=0;i<10000;i++)
-		renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 255]});
+		renderer.draw.rect(Math.random() * 400, Math.random() * 400, 5, 5, {color: [0, 255, 0, 100]});
 
 	renderer.draw.rect(-50, -50, 100, 100, rectangle_properties);
 
 	ang += 0.1;
 
 	renderer.flush();
+	//console.log(drawcall);
 	drawcall = 0;
 
 	requestAnimationFrame(() => {
