@@ -27,6 +27,9 @@ let shader;
 let mat;
 let def;
 
+let font;
+let fontloaded = false;
+
 function onWindowResize() {
 	renderer.resizeCanvas(window.innerWidth, window.innerHeight);
 }
@@ -38,6 +41,11 @@ function everythingLoaded() {
 		canvasHeight: 400
 	};
 	renderer = $R.Create.Renderer(config);
+
+	font = new $Renderer_Font(renderer.$m_gl, "/res/arial.ttf");
+	font.loadFont(() => {
+		fontloaded = true;
+	});
 
 	frameBuffer = renderer.create.textureBuffer(100, 100);
 
@@ -79,6 +87,9 @@ function animationLoop(renderer) {
 	renderer.draw.vertex(shape, {x: 200, y: 100});
 	renderer.draw.vertex(shape, {x: 150, y: 200});
 	renderer.draw.shape(shape);
+
+	if(fontloaded)
+		renderer.draw.text(font, "Hello World!", 100, 100, {fontSize: 48});
 
 	renderer.flush();
 

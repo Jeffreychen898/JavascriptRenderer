@@ -48,15 +48,14 @@ class $Renderer_Main {
 				if(!properties) properties = {};
 				this.$drawImage(image, x, y, width, height, properties);
 			},
-			shader: (shader, x, y, width, height, attributes, properties) => {
-				if(!properties) properties = {};
-				//this.$drawShaders(shader, x, y, width, height, attributes, properties);
-			},
 			vertex: (shader, position, attribute) => {
 				this.$setVertex(shader, position, attribute);
 			},
 			shape: (shape) => {
 				this.$drawShape(shape);
+			},
+			text: (font, text, x, y, properties) => {
+				this.$drawText(font, text, x, y, properties);
 			}
 		}
 
@@ -282,16 +281,6 @@ class $Renderer_Main {
 	}
 	
 	/* @private */
-	/* @param {Shader, number, number, number, number, array, Object} */
-	/* [{name: String, content: array, [optional]allVert: boolean} */
-	/*
-		color: Array
-		texture: [Texture]
-		position: String
-		transformation: Matrix4
-		textureBuffer: TextureBuffer
-	*/
-
 	/* @param{Texture, number, number, number, number, Object} */
 	/*
 		color: [number, number, number]
@@ -306,6 +295,51 @@ class $Renderer_Main {
 		this.$setVertex(new_shape, {x: x + width, y: y + height}, [{name: "a_texCoord", values: [1, 0]}]);
 		this.$setVertex(new_shape, {x: x, y: y + height}, [{name: "a_texCoord", values: [0, 0]}]);
 		this.$drawShape(new_shape);
+	}
+
+	/* @param {Font, String, number, number, Object} */
+	$drawText(font, letter, x, y, properties) {
+		properties.texture = [font];
+		properties.shader = null;
+		const size = properties.fontSize || font.$m_fontSize;
+		const scale = size / font.$m_fontSize;
+
+		let advance = 0;
+		for(const character of letter) {
+			if(character == " ") {
+				advance += font.spacesSize * scale;
+				continue;
+			}
+
+			//measure
+			const get_measurements = font.fontMeasurements.get(character);
+			const uv = [
+				[get_measurements.uv.left, get_measurements.uv.top],
+				[get_measurements.uv.right, get_measurements.uv.top],
+				[get_measurements.uv.right, get_measurements.uv.bottom],
+				[get_measurements.uv.left, get_measurements.uv.bottom]
+			];
+
+			const left = x + advance + get_measurements.x * scale;
+			const top = y + get_measurements.y * scale;
+			const positions = [
+				{x: left, y: top},
+				{x: left + get_measurements.width * scale, y: top},
+				{x: left + get_measurements.width * scale, y: top + get_measurements.height * scale},
+				{x: left, y: top + get_measurements.height * scale}
+			];
+
+			//draw shape
+			const copy_properties = {...properties};
+			const new_shape = this.$createShape(copy_properties);
+			this.$setVertex(new_shape, positions[0], [{name: "a_texCoord", values: uv[0]}]);
+			this.$setVertex(new_shape, positions[1], [{name: "a_texCoord", values: uv[1]}]);
+			this.$setVertex(new_shape, positions[2], [{name: "a_texCoord", values: uv[2]}]);
+			this.$setVertex(new_shape, positions[3], [{name: "a_texCoord", values: uv[3]}]);
+			this.$drawShape(new_shape);
+
+			advance += get_measurements.advance * scale;
+		}
 	}
 
 	/* @param {Program} */

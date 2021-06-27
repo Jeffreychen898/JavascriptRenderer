@@ -588,6 +588,8 @@ const $R = {
 	}
 }
 
+let drawcall = 0;
+
 class $Renderer_Main {
 	/* @param {Object}
 	 * canvas: canvas id 
@@ -625,7 +627,13 @@ class $Renderer_Main {
 			},
 			shader: (shader, x, y, width, height, attributes, properties) => {
 				if(!properties) properties = {};
-				this.$drawShaders(shader, x, y, width, height, attributes, properties);
+				//this.$drawShaders(shader, x, y, width, height, attributes, properties);
+			},
+			vertex: (shader, position, attribute) => {
+				this.$setVertex(shader, position, attribute);
+			},
+			shape: (shape) => {
+				this.$drawShape(shape);
 			}
 		}
 
@@ -648,6 +656,9 @@ class $Renderer_Main {
 				texture_buffer.create();
 
 				return texture_buffer;
+			},
+			shape: (properties, shader) => {
+				return this.$createShape(properties, shader);
 			}
 		}
 	}
@@ -679,112 +690,184 @@ class $Renderer_Main {
 		if(adjustCamera)
 			this.setCamera(new $Renderer_Camera2D(0, width, 0, height));
 	}
-	
-	/* @private */
-	/* @param {Shader, number, number, number, number, array, Object} */
-	/* [{name: String, content: array, [optional]allVert: boolean} */
+
+	/* @param {(optional)JSONObject, (optional)Shader}*/
 	/*
+		color: [number]
 		texture: [Texture]
 		position: String
 		transformation: Matrix4
 		textureBuffer: TextureBuffer
 	*/
-	$drawShaders(shader, x, y, width, height, attributes, properties) {
-		let is_flushed = false;
+	$createShape(properties, shader) {
+		if(!shader) {
+			let color = [1, 1, 1, 1];
+			if(properties.color) {
+				switch(properties.color.length) {
+					case 1:
+						color = [
+							properties.color[0] / 255,
+							properties.color[0] / 255,
+							properties.color[0] / 255,
+							1
+						];
+						break;
+					case 2:
+						color = [
+							properties.color[0] / 255,
+							properties.color[0] / 255,
+							properties.color[0] / 255,
+							properties.color[1] / 255
+						];
+						break;
+					case 3:
+						color = [
+							properties.color[0] / 255,
+							properties.color[1] / 255,
+							properties.color[2] / 255,
+							1
+						];
+						break;
+					case 4:
+						color = [
+							properties.color[0] / 255,
+							properties.color[1] / 255,
+							properties.color[2] / 255,
+							properties.color[3] / 255
+						];
+						break;
+				}
+			}
+			properties.color = color;
 
+			if(!properties.texture) properties.texture = [this.$m_whiteTexture];
+			if(properties.texture.length == 0) properties.texture = [this.$m_whiteTexture];
+
+			shader = this.$m_shaderProgram;
+		}
+
+		const shapes_properties = {
+			properties: properties,
+			shader: shader || null,
+			vertices: []
+		};
+
+		return shapes_properties;
+	}
+
+	/* @param {x, y, Array} */
+	/* [{name: String, value: Array }] */
+	$setVertex(shape, position, attributes) {
+		if(!attributes) attributes = [];
+		if(shape.shader == this.$m_shaderProgram) {
+			let color_found = false;
+			let texCoord_found = false;
+			for(const attribute of attributes) {
+				if(attribute.name == "a_color")
+					color_found = true;
+				else if(attribute.name == "a_texCoord")
+					texCoord_found = true;
+			}
+			if(!color_found)
+				attributes.push({name: "a_color", values: shape.properties.color});
+			if(!texCoord_found)
+				attributes.push({name: "a_texCoord", values: [0, 0]});
+		}
+
+		const attribs = [
+			...attributes,
+			{
+				name: shape.properties.position || "a_position",
+				values: [position.x, position.y, position.z || 0]
+			}
+		];
+		shape.vertices.push(attribs);
+	}
+
+	/* @param {shape} */
+	$drawShape(shape) {
+		if(shape.vertices.length < 3)
+			return;
+
+		let is_flushed = false;
+		
 		//texture buffers
-		if(!properties.textureBuffer) {
+		if(!shape.properties.textureBuffer) {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != null && !is_flushed) {
-				this.flush();
+				this.setCamera(this.$m_defaultCamera);
 				is_flushed = true;
+
+				$Renderer_BindDefaultFrameBuffer(this.$m_gl);
+				this.$m_gl.viewport(0, 0, this.$m_properties.canvasSize.width, this.$m_properties.canvasSize.height);
 			}
-			$Renderer_BindDefaultFrameBuffer(this.$m_gl);
-			this.$m_gl.viewport(0, 0, this.$m_properties.canvasSize.width, this.$m_properties.canvasSize.height);
-			this.setCamera(this.$m_defaultCamera);
 		} else {
-			if($RendererVariable.WebGL.Binding.FrameBuffer != properties.textureBuffer.$m_framebuffer && !is_flushed) {
+			if($RendererVariable.WebGL.Binding.FrameBuffer != shape.properties.textureBuffer.$m_framebuffer && !is_flushed) {
 				this.flush();
 				is_flushed = true;
+
+				shape.properties.textureBuffer.bind();
+				this.$m_shaderProgram.setUniform("u_projection", shape.properties.textureBuffer.defaultCamera.matrix);
 			}
-			properties.textureBuffer.bind();
-			this.$m_shaderProgram.setUniform("u_projection", properties.textureBuffer.defaultCamera.matrix);
 		}
 
 		//textures and texture slots
-		if(properties.texture) {
-			for(let i=0;i<properties.texture.length;i++) {
-				if($RendererVariable.WebGL.Binding.Textures[i] != properties.texture[i].$m_texture) {
+		if(shape.properties.texture) {
+			for(let i=0;i<shape.properties.texture.length;i++) {
+				if($RendererVariable.WebGL.Binding.Textures[i] != shape.properties.texture[i].$m_texture) {
 					if(!is_flushed) {
 						this.flush();
 						is_flushed = true;
 					}
-					properties.texture[i].bindTexture(i);
+					shape.properties.texture[i].bindTexture(i);
 				}
 			}
 		}
 
 		//shader and vertex count
-		if(shader != this.$m_currentBoundProgram)
+		if(shape.shader != this.$m_currentBoundProgram)
 			this.$render(this.$m_currentBoundProgram);
 		else if(this.$m_vertexCount + 4 > $RendererVariable.WebGL.MaxVertexCount)
 			this.$render(this.$m_currentBoundProgram);
 
 		//attributes
-		if(!attributes) attributes = [];
+		const position_name = shape.properties.position || "a_position";
+		for(let i=0;i<shape.vertices.length;i++) {
+			for(let j=0;j<shape.vertices[i].length;j++) {
+				if(shape.vertices[i][j].name == position_name && shape.properties.transformation) {
+					const new_vertex_position = shape.properties.transformation.multiplyRaw([...shape.vertices[i][j].values, 1]);
+					shape.vertices[i][j].values[0] = new_vertex_position[0];
+					shape.vertices[i][j].values[1] = new_vertex_position[1];
+					shape.vertices[i][j].values[2] = new_vertex_position[2];
+				}
 
-		const positions = [
-			x, y, 0,
-			x + width, y, 0,
-			x + width, y + height, 0,
-			x, y + height, 0
-		];
-
-		if(properties.transformation) {
-			for(let i=0;i<4;i++) {
-				const vertex_position = [
-					positions[i * 3],
-					positions[i * 3 + 1],
-					positions[i * 3 + 2],
-					1
-				];
-				const new_vertex_position = properties.transformation.multiplyRaw(vertex_position);
-				positions[i * 3] = new_vertex_position[0];
-				positions[i * 3 + 1] = new_vertex_position[1];
-				positions[i * 3 + 2] = new_vertex_position[2];
+				const attribute_index = this.$m_attributesTracker.get(shape.vertices[i][j].name);
+				if(typeof(attribute_index) == "number")
+					this.$m_attributes[attribute_index].content.push(...(shape.vertices[i][j].values));
+				else {
+					this.$m_attributesTracker.set(shape.vertices[i][j].name, this.$m_attributes.length);
+					this.$m_attributes.push({ name: shape.vertices[i][j].name, content: [...(shape.vertices[i][j].values)]});
+				}
 			}
 		}
 
-		for(const attrib of attributes) {
-			if(attrib.allVert) {
-				attrib.content = [
-					...attrib.content,
-					...attrib.content,
-					...attrib.content,
-					...attrib.content
-				];
-			}
+		for(let i=2;i<shape.vertices.length;i++) {
+			this.$m_indices.push(this.$m_vertexCount, this.$m_vertexCount + i - 1, this.$m_vertexCount + i);
 		}
 
-		attributes.push({name: properties.position || "a_position", content: positions});
-
-		for(let i=0;i<attributes.length;i++) {
-			const attribute_index = this.$m_attributesTracker.get(attributes[i].name);
-			if(typeof(attribute_index) == "number")
-				this.$m_attributes[attribute_index].content.push(...(attributes[i].content));
-			else {
-				this.$m_attributesTracker.set(attributes[i].name, this.$m_attributes.length);
-				this.$m_attributes.push({ name: attributes[i].name, content: attributes[i].content });
-			}
-		}
-
-		this.$m_indices.push(
-			this.$m_vertexCount, this.$m_vertexCount + 1, this.$m_vertexCount + 2,
-			this.$m_vertexCount, this.$m_vertexCount + 2, this.$m_vertexCount + 3
-		);
-
-		this.$m_vertexCount += 4;
-		this.$m_currentBoundProgram = shader;
+		this.$m_vertexCount += shape.vertices.length;
+		this.$m_currentBoundProgram = shape.shader;
 	}
+	
+	/* @private */
+	/* @param {Shader, number, number, number, number, array, Object} */
+	/* [{name: String, content: array, [optional]allVert: boolean} */
+	/*
+		color: Array
+		texture: [Texture]
+		position: String
+		transformation: Matrix4
+		textureBuffer: TextureBuffer
+	*/
 
 	/* @param{Texture, number, number, number, number, Object} */
 	/*
@@ -793,55 +876,13 @@ class $Renderer_Main {
 		textureBuffer: Texture Buffer
 	*/
 	$drawImage(image, x, y, width, height, properties) {
-		let color = [255, 255, 255, 255];
-		if(typeof(properties.color) == "object") {
-			switch(properties.color.length) {
-				case 1:
-					color = [
-						properties.color[0],
-						properties.color[0],
-						properties.color[0],
-						255
-					];
-					break;
-				case 2:
-					color = [
-						properties.color[0],
-						properties.color[0],
-						properties.color[0],
-						properties.color[1]
-					];
-					break;
-				case 3:
-					color = [
-						properties.color[0],
-						properties.color[1],
-						properties.color[2],
-						255
-					];
-					break;
-				case 4:
-					color = [...properties.color];
-					break;
-			}
-		};
-		for(let i=0;i<color.length;i++)
-			color[i] = color[i] / 255;
-
-		const tex_coords = [
-			0, 1,
-			1, 1,
-			1, 0,
-			0, 0
-		];
-
-		const attributes = [
-			{name: "a_color", content: color, allVert: true},
-			{name: "a_texCoord", content: tex_coords, allVert: false}
-		];
-
 		properties.texture = [image];
-		this.$drawShaders(this.$m_shaderProgram, x, y, width, height, attributes, properties);
+		const new_shape = this.$createShape(properties);
+		this.$setVertex(new_shape, {x: x, y: y}, [{name: "a_texCoord", values: [0, 1]}]);
+		this.$setVertex(new_shape, {x: x + width, y: y}, [{name: "a_texCoord", values: [1, 1]}]);
+		this.$setVertex(new_shape, {x: x + width, y: y + height}, [{name: "a_texCoord", values: [1, 0]}]);
+		this.$setVertex(new_shape, {x: x, y: y + height}, [{name: "a_texCoord", values: [0, 0]}]);
+		this.$drawShape(new_shape);
 	}
 
 	/* @param {Program} */
