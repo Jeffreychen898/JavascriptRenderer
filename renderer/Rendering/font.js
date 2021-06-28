@@ -85,8 +85,7 @@ class $Renderer_Font {
         const ctx = sub_canvas.getContext("2d");
 
         for(let i=0;i<characters.length;i++) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const position = {
                 x: 2 - characterInfo[i].xMin * scale,

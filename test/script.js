@@ -89,7 +89,7 @@ function animationLoop(renderer) {
 	renderer.draw.shape(shape);
 
 	if(fontloaded)
-		renderer.draw.text(font, "Hello World!", 100, 100, {fontSize: 48});
+		renderer.draw.text(font, "Hello World!", 100, 100, {fontSize: 48, color: [255, 0, 0]});
 
 	renderer.flush();
 

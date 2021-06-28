@@ -94,6 +94,7 @@ class $Renderer_Main {
 	setCamera(camera) {
 		this.flush();
 		this.$m_defaultCamera = camera;
+		this.$m_textShader.setUniform("u_projection", camera.matrix);
 		this.$m_shaderProgram.setUniform("u_projection", camera.matrix);
 	}
 
@@ -113,6 +114,48 @@ class $Renderer_Main {
 			this.setCamera(new $Renderer_Camera2D(0, width, 0, height));
 	}
 
+	/* @param {Array, Array} */
+	$calculateColor(defaultColor, input) {
+		if(!input) return defaultColor;
+		let color = defaultColor;
+		switch(input.length) {
+			case 1:
+				color = [
+					input[0] / 255,
+					input[0] / 255,
+					input[0] / 255,
+					1
+				];
+				break;
+			case 2:
+				color = [
+					input[0] / 255,
+					input[0] / 255,
+					input[0] / 255,
+					input[1] / 255
+				];
+				break;
+			case 3:
+				color = [
+					input[0] / 255,
+					input[1] / 255,
+					input[2] / 255,
+					1
+				];
+				break;
+			case 4:
+				color = [
+					input[0] / 255,
+					input[1] / 255,
+					input[2] / 255,
+					input[3] / 255
+				];
+				break;
+		}
+
+		return color;
+	}
+
 	/* @param {(optional)JSONObject, (optional)Shader}*/
 	/*
 		color: [number]
@@ -123,43 +166,8 @@ class $Renderer_Main {
 	*/
 	$createShape(properties, shader) {
 		if(!shader) {
-			let color = [1, 1, 1, 1];
-			if(properties.color) {
-				switch(properties.color.length) {
-					case 1:
-						color = [
-							properties.color[0] / 255,
-							properties.color[0] / 255,
-							properties.color[0] / 255,
-							1
-						];
-						break;
-					case 2:
-						color = [
-							properties.color[0] / 255,
-							properties.color[0] / 255,
-							properties.color[0] / 255,
-							properties.color[1] / 255
-						];
-						break;
-					case 3:
-						color = [
-							properties.color[0] / 255,
-							properties.color[1] / 255,
-							properties.color[2] / 255,
-							1
-						];
-						break;
-					case 4:
-						color = [
-							properties.color[0] / 255,
-							properties.color[1] / 255,
-							properties.color[2] / 255,
-							properties.color[3] / 255
-						];
-						break;
-				}
-			}
+			const color = this.$calculateColor([1, 1, 1, 1], properties.color);
+
 			properties.color = color;
 
 			if(!properties.texture) properties.texture = [this.$m_whiteTexture];
@@ -170,7 +178,7 @@ class $Renderer_Main {
 
 		const shapes_properties = {
 			properties: properties,
-			shader: shader || null,
+			shader: shader,
 			vertices: []
 		};
 
@@ -246,9 +254,9 @@ class $Renderer_Main {
 		}
 
 		//shader and vertex count
-		if(shape.shader != this.$m_currentBoundProgram)
+		if(shape.shader != this.$m_currentBoundProgram) {
 			this.$render(this.$m_currentBoundProgram);
-		else if(this.$m_vertexCount + 4 > $RendererVariable.WebGL.MaxVertexCount)
+		} else if(this.$m_vertexCount + 4 > $RendererVariable.WebGL.MaxVertexCount)
 			this.$render(this.$m_currentBoundProgram);
 
 		//attributes
@@ -301,6 +309,7 @@ class $Renderer_Main {
 	$drawText(font, letter, x, y, properties) {
 		properties.texture = [font];
 		properties.shader = null;
+		const color = this.$calculateColor([0, 0, 0, 1], properties.color);
 		const size = properties.fontSize || font.$m_fontSize;
 		const scale = size / font.$m_fontSize;
 
@@ -330,12 +339,13 @@ class $Renderer_Main {
 			];
 
 			//draw shape
+			const colorProperty = {name: "a_color", values: color};
 			const copy_properties = {...properties};
-			const new_shape = this.$createShape(copy_properties);
-			this.$setVertex(new_shape, positions[0], [{name: "a_texCoord", values: uv[0]}]);
-			this.$setVertex(new_shape, positions[1], [{name: "a_texCoord", values: uv[1]}]);
-			this.$setVertex(new_shape, positions[2], [{name: "a_texCoord", values: uv[2]}]);
-			this.$setVertex(new_shape, positions[3], [{name: "a_texCoord", values: uv[3]}]);
+			const new_shape = this.$createShape(copy_properties, this.$m_textShader);
+			this.$setVertex(new_shape, positions[0], [{name: "a_texCoord", values: uv[0]}, colorProperty]);
+			this.$setVertex(new_shape, positions[1], [{name: "a_texCoord", values: uv[1]}, colorProperty]);
+			this.$setVertex(new_shape, positions[2], [{name: "a_texCoord", values: uv[2]}, colorProperty]);
+			this.$setVertex(new_shape, positions[3], [{name: "a_texCoord", values: uv[3]}, colorProperty]);
 			this.$drawShape(new_shape);
 
 			advance += get_measurements.advance * scale;
@@ -411,10 +421,22 @@ class $Renderer_Main {
 		const canvasWidth = this.$m_properties.canvasSize.width;
 		const canvasHeight = this.$m_properties.canvasSize.height;
 		this.$m_defaultCamera = new $Renderer_Camera2D(0, canvasWidth, 0, canvasHeight);
-		this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.get("default").vert, $ShaderCode.get("default").frag, attribs, uniforms);
 
-		this.$m_shaderProgram.setUniform("u_projection", this.$m_defaultCamera.matrix);
-		this.$m_shaderProgram.setUniform("u_texture", 0);
+		//default shader program
+		{
+			this.$m_shaderProgram = new $Renderer_Shader(gl, $ShaderCode.get("default").vert, $ShaderCode.get("default").frag, attribs, uniforms);
+
+			this.$m_shaderProgram.setUniform("u_projection", this.$m_defaultCamera.matrix);
+			this.$m_shaderProgram.setUniform("u_texture", 0);
+		}
+
+		//text rendering shader program
+		{
+			this.$m_textShader = new $Renderer_Shader(gl, $ShaderCode.get("text").vert, $ShaderCode.get("text").frag, attribs, uniforms);
+
+			this.$m_textShader.setUniform("u_projection", this.$m_defaultCamera.matrix);
+			this.$m_textShader.setUniform("u_texture", 0);
+		}
 
 		this.$m_shaderProgram.bind();
 		this.$m_currentBoundProgram = this.$m_shaderProgram;
