@@ -42,7 +42,7 @@ function everythingLoaded() {
 	};
 	renderer = $R.Create.Renderer(config);
 
-	font = new $Renderer_Font(renderer.$m_gl, "/res/arial.ttf");
+	font = renderer.create.font("/res/arial.ttf");
 	font.loadFont(() => {
 		fontloaded = true;
 	});

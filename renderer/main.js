@@ -67,6 +67,10 @@ class $Renderer_Main {
 
 				return new_texture;
 			},
+			/* @param {String} */
+			font: (source) => {
+				return new $Renderer_Font(this.$m_gl, source);
+			},
 			/* @param {String, String, [Object]} */
 			/* [{name: String, size: number}] */
 			shader: (vertexShader, fragmentShader, attributes, uniforms) => {

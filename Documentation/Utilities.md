@@ -137,6 +137,12 @@ In order for the camera to be put in effect, you must use the following line of 
 renderer.setCamera(camera);
 ```
 
+If you are looking to modify the camera of a texture buffer, you must call the setCamera method from the texture buffer class.
+
+```javascript
+textureBuffer.setCamera(camera);
+```
+
 # Texture Buffer
 
 If you want to render your shapes to a buffer before rendering it to your screen, you can use a texture buffer. In order to create a texture buffer, you must include the following line of code:
@@ -158,6 +164,19 @@ You can pass the texture buffer into the properties variable, which can then be 
 **Rendering the texture buffer**
 
 The render buffer can be treated as an Image. You should be able to replace any argument requiring a texture with a texture buffer unless specified otherwise.
+
+# Resizing the canvas
+
+If you resize the canvas, you need to call the resizeCanvas method
+
+```javascript
+/* @param {number, number} */
+renderer.resizeCanvas(new_width, new_height);
+/* @param {number, number, boolean(default: true)} */
+renderer.resizeCanvas(new_width, new_height, adjustCamera)
+```
+
+If the canvas is resized, the camera remains the same if you do not adjust the camera. This may lead to your shapes being stretched in ways you may not expect. This is why the adjustCamera variable defaults to true. If you want to preserve the camera for some reason, you may pass "false" into the third parameter.
 
 # Shaders
 
