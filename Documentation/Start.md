@@ -78,23 +78,29 @@ renderer.draw.image(texture, x, y, width, height);
 renderer.draw.image(texture, x, y, width, height, properties);
 ```
 
-### Shaders
+### Text
 
-* **shader**: The shader to use to draw the shape
-* **x**: the x position of the shape
-* **y**: the y position of the shape
-* **width**: the width of the shape
-* **height**: the height of the shape
-* **attributes**: the attributes that will be passed into the GLSL shader
-* **properties** the properties of the shape, scroll all the way down for more details
+* **font**: The font that will be used
+* **Text**: The text to write onto the screen
+* **x**: The x position of the shape
+* **y**: The y position of the shape
+* **properties**: The properties of the shape, scroll all the way down for more details
+  * fontSize: The fontSize of the properties can adjust the font size of the text. The default is 48.
 
 ```javascript
-/* @param {Shader, number, number, number, number} */
-renderer.draw.shader(shader, x, y, width, height);
-/* @param {Shader, number, number, number, number, JSONArray} */
-renderer.draw.shader(shader, x, y, width, height, attributes);
-/* @param {shader, number, number, number, number, JSONArray, JSONObject} */
-renderer.draw.shader(shader, x, y, width, height, attributes, properties)
+/* @param {Font, string, number, number, JSONObject} */
+renderer.draw.text(font, "Hello World!", x, y, properties);
+```
+
+
+
+### Shapes
+
+* **shape**: The shape created by the create.shape() method
+
+```javascript
+/* @param {JSONObject} */
+renderer.draw.shape(shape);
 ```
 
 ### Properties

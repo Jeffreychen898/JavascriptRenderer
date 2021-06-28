@@ -8,6 +8,68 @@ You can use the following line of code to load your image
 const texture = renderer.create.texture("<source>");
 ```
 
+# Loading Fonts
+
+You can use the following code to create the Font object.
+
+```javascript
+const font = renderer.create.font("<source>");
+```
+
+However, the font is not loaded yet. You have to use the loadFont method to load the font. This method contains an optional parameter that takes in a function. This function is executed when the font is fully loaded.
+
+```javascript
+font.loadFont(() => {
+	//the font is finished loading
+});
+```
+
+# Shapes
+
+### Creating the shape
+
+When you draw shapes, you have to first create a shape. The method below takes in 2 optional parameters: **properties**, and **shader**.
+
+#### Extra Properties
+
+* **position attribute name**: If you are using your own shader program, your position attribute variable may be under a different name. You can pass in that name under the key **position** in the properties variable.
+* **textures**: If you are using your own shader program, you may also want to bind different textures. You can pass in an **array** of textures under the key **texture** in the properties.
+
+```javascript
+const shape = renderer.create.shape();
+/* @param {JSONObject} */
+const shape = renderer.create.shape(properties);
+/* @param {JSONObject, Shader} */
+const shape = renderer.create.shape(properties, shader);
+```
+
+### Adding vertices
+
+The next step is to add vertices to your shape. In order for your shape to be rendered onto the screen, it must contain 3 or more vertices.
+
+```javascript
+/* @param {Shape, number, number} */
+renderer.draw.vertices(shape, x, y);
+/* @param {Shape, number, number, Array} */
+renderer.draw.vertices(shape, x, y, attributes);
+```
+
+If you are using a different shader program, you may have other attributes(aside from position) that you may want to add in your vertices. You can pass it in the fourth parameter, which takes in an array of  JSON Objects. For each JSON Object, you have to pass in the name of your attribute and the values in the form of an array.
+
+```javascript
+const attributes = [
+    {name: "a_color", values: [1, 0, 0, 1]}
+];
+```
+
+### Drawing the shape
+
+Once the shape is created and the vertices are set, you can start drawing the shape. If your shape is not going to change in any way, you can repeatedly render it without having to repeatedly create the shape.
+
+```javascript
+renderer.draw.shape(shape);
+```
+
 # Transformation Matrices
 
 **Creating the Matrix**
@@ -99,8 +161,6 @@ The render buffer can be treated as an Image. You should be able to replace any 
 
 # Shaders
 
-**This part of the renderer is subject to change**
-
 **Source Code**
 
 If you are using your own shader program, you first need to store your source code in a variable somewhere. Here is an example below:
@@ -182,48 +242,3 @@ Once you created the shader, you then need to pass in the data for the uniform v
 shader.setUniform("u_projection", matrix);
 shader.setUniform("u_texture", texSlot);
 ```
-
-**Using the Shader Program with renderer.draw.shader()**
-
-In order to use the shader program, you need to note 3 things:
-
-* When specifying the data for the attributes, note that the shape is a rectangle and the vertices start at the top left and go counterclockwise.
-
-* The data for the attributes should be in the form of one big array with data representing each vertex being right next to one another without any kind of separation. An example is shown below:
-
-```javascript
-const tex_coordinates = [
-    0, 1,//top left
-    1, 1,//top right
-    1, 0,//bottom right
-    0, 0 //bottom left
-];
-const attributes = [
-    {
-        name: "a_texCoord",
-        content: tex_coordinates,
-        allVert: false
-    }
-];
-//allVert is default to false. When it is set to true, you only need to pass in one set of data for the attributes and it will apply to every vertices (I can't think of a creative variable name so I am stuck with "allVert" for now).
-```
-
-
-
-* The positions are defined for you. You do not need to pass in your own data for the position. However, you might need to change the name of the position variable if your shader do not call it "a_position". Below is an example of how to change the name from "a_position" to just "position".
-
-```javascript
-//I will not use this because my position is called "a_position"
-const properties = {
-    position: "position"
-};
-```
-
-The final step now is to call the renderer.draw.shader() method. This method requires you to specify the shader, the x position, the y position, the width, and the height. There are 2 optional parameters, they are: the attributes**(if the only attributes you use is the position)** and properties**(attributes must be defined at least with a [] if properties is passed in)**.
-
-```Javascript
-renderer.draw.shader(shader, 0, 0, 800, 600, attributes);
-```
-
-**You can see why this is subject to change, it is really long and complicated**
-
