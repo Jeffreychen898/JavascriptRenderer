@@ -1,3 +1,20 @@
+const Renderer = {
+	Uniform: {
+		Integer: 0,
+		Float: 1,
+		Vector2: 2,
+		Vector3: 3,
+		Vector4: 4,
+		Matrix4: 5,
+		IntegerArray: 6
+	},
+	MaxTextureSlot: undefined,
+	Blending: {
+		Default: 0,
+		Add: 1
+	}
+}
+
 let $RendererVariable = {
 	WebGL: {
 		Binding: {
@@ -7,6 +24,7 @@ let $RendererVariable = {
 			TextureSlot: 0,
 			Textures: []
 		},
+		Blending: Renderer.Blending.Default,
 		MaxVertexCount: 10000
 	},
 	Texture: {
@@ -20,18 +38,5 @@ let $RendererVariable = {
 			Matrix4: 0,
 			Vector4: 1
 		}
-	}
-};
-
-const Renderer = {
-	Uniform: {
-		Integer: 0,
-		Float: 1,
-		Vector2: 2,
-		Vector3: 3,
-		Vector4: 4,
-		Matrix4: 5,
-		IntegerArray: 6
 	},
-	MaxTextureSlot: undefined
-}
+};

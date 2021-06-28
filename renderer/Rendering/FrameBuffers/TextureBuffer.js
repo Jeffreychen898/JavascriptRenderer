@@ -43,6 +43,14 @@ class $Renderer_TextureBuffer {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, $RendererVariable.WebGL.Binding.FrameBuffer);
 	}
 
+	clear() {
+		const gl = this.$m_gl;
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.$m_framebuffer);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, $RendererVariable.WebGL.Binding.FrameBuffer);
+	}
+
 	bind() {
 		if($RendererVariable.WebGL.Binding.FrameBuffer != this.$m_framebuffer) {
 			const gl = this.$m_gl;

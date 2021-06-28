@@ -89,6 +89,12 @@ class $Renderer_Main {
 		}
 	}
 
+	clear() {
+		const gl = this.$m_gl;
+		$Renderer_BindDefaultFrameBuffer(gl);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+	}
+
 	flush() {
 		if(this.$m_vertexCount > 0)
 			this.$render(this.$m_currentBoundProgram);
@@ -225,6 +231,15 @@ class $Renderer_Main {
 
 		let is_flushed = false;
 		
+		//blendmode
+		if(!shape.properties.blend) shape.properties.blend = Renderer.Blending.Default;
+		if(shape.properties.blend != $RendererVariable.WebGL.Blending) {
+			this.flush();
+			is_flushed = true;
+
+			this.$setBlendMode(shape.properties.blend);
+		}
+
 		//texture buffers
 		if(!shape.properties.textureBuffer) {
 			if($RendererVariable.WebGL.Binding.FrameBuffer != null && !is_flushed) {
@@ -290,6 +305,21 @@ class $Renderer_Main {
 
 		this.$m_vertexCount += shape.vertices.length;
 		this.$m_currentBoundProgram = shape.shader;
+	}
+
+	/* @param {Renderer.Blending} */
+	$setBlendMode(mode) {
+		const gl = this.$m_gl;
+
+		$RendererVariable.WebGL.Blending = mode;
+		switch(mode) {
+			case Renderer.Blending.Default:
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+				break;
+			case Renderer.Blending.Add:
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+				break;
+		}
 	}
 	
 	/* @private */

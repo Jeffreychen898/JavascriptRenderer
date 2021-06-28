@@ -30,6 +30,8 @@ let def;
 let font;
 let fontloaded = false;
 
+let framecount = 0;
+
 function onWindowResize() {
 	renderer.resizeCanvas(window.innerWidth, window.innerHeight);
 }
@@ -68,28 +70,35 @@ function everythingLoaded() {
 function animationLoop(renderer) {
 	const current = new Date().getTime();
 	//console.log(1 / ((current - last_time) / 1000));
-	fps = 1 / ((current - last_time) / 1000);
+	if(framecount % 20 == 0)
+		fps = 1 / ((current - last_time) / 1000);
 	last_time = current;
+
+	framecount ++;
+
+	renderer.clear();
+
+	renderer.draw.rect(0, 0, 400, 400, {color: [255]});
 
 	const properties = {
 		color: [255, 0, 255]
 	};
-	renderer.draw.rect(0, 0, 400, 400, {color: [0], textureBuffer: frameBuffer});
-	renderer.draw.rect((a/4) % 100, 40, 20, 20, {color: [255, 255, 0], textureBuffer: frameBuffer});
 
-	//renderer.draw.shader(shader, 100, 150, 100, 100, [], {textureBuffer: frameBuffer});
-	renderer.draw.rect(a % 400, 100, 100, 100, properties);
+	frameBuffer.clear();
+	renderer.draw.rect((a/4) % 100, 40, 20, 20, {color: [255, 255, 0], textureBuffer: frameBuffer});
 	renderer.draw.image(frameBuffer, 0, 0, 100, 100);
+
+	renderer.draw.rect(a % 400, 100, 100, 100, properties);
 	a += 5;
 
-	const shape = renderer.create.shape({color: [0, 150, 0]});
+	const shape = renderer.create.shape({color: [0, 255, 0]});
 	renderer.draw.vertex(shape, {x: 100, y: 100});
 	renderer.draw.vertex(shape, {x: 200, y: 100});
 	renderer.draw.vertex(shape, {x: 150, y: 200});
 	renderer.draw.shape(shape);
 
 	if(fontloaded)
-		renderer.draw.text(font, "Hello World!", 100, 100, {fontSize: 48, color: [255, 0, 0]});
+		renderer.draw.text(font, fps.toString(), 100, 100, {fontSize: 48, color: [255, 0, 0]});
 
 	renderer.flush();
 
