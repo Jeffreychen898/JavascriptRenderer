@@ -20,13 +20,13 @@ class $Renderer_Main {
 	 * canvasHeight: number
 	*/
 	constructor(config) {
-		this.$m_canvas = document.getElementById(config.canvas);
-		this.$m_gl = this.$m_canvas.getContext("webgl2");
+		this.canvas = document.getElementById(config.canvas);
+		this.$m_gl = this.canvas.getContext("webgl2");
 
 		this.$m_properties = {
 			canvasSize: {
-				width: config.canvasWidth || this.$m_canvas.width,
-				height: config.canvasHeight || this.$m_canvas.height
+				width: config.canvasWidth || this.canvas.width,
+				height: config.canvasHeight || this.canvas.height
 			}
 		};
 
@@ -111,8 +111,8 @@ class $Renderer_Main {
 	/* @param {number, number, boolean} */
 	resizeCanvas(width, height, adjustCamera) {
 		if(adjustCamera == undefined) adjustCamera = true;
-		this.$m_canvas.width = width;
-		this.$m_canvas.height = height;
+		this.canvas.width = width;
+		this.canvas.height = height;
 
 		this.$m_properties.canvasSize.width = width;
 		this.$m_properties.canvasSize.height = height;
@@ -242,7 +242,7 @@ class $Renderer_Main {
 
 		//texture buffers
 		if(!shape.properties.textureBuffer) {
-			if($RendererVariable.WebGL.Binding.FrameBuffer != null && !is_flushed) {
+			if($RendererVariable.WebGL.Binding.FrameBuffer != null) {
 				this.setCamera(this.$m_defaultCamera);
 				is_flushed = true;
 
@@ -250,9 +250,11 @@ class $Renderer_Main {
 				this.$m_gl.viewport(0, 0, this.$m_properties.canvasSize.width, this.$m_properties.canvasSize.height);
 			}
 		} else {
-			if($RendererVariable.WebGL.Binding.FrameBuffer != shape.properties.textureBuffer.$m_framebuffer && !is_flushed) {
-				this.flush();
-				is_flushed = true;
+			if($RendererVariable.WebGL.Binding.FrameBuffer != shape.properties.textureBuffer.$m_framebuffer) {
+				if(!is_flushed) {
+					this.flush();
+					is_flushed = true;
+				}
 
 				shape.properties.textureBuffer.bind();
 				this.$m_shaderProgram.setUniform("u_projection", shape.properties.textureBuffer.defaultCamera.matrix);
